@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.5.1-0-g916b5db  Build Version: 1.5.7152.31018
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="asm_1">
+    <link name="world" />
+    <joint name="world_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+        <parent link="world" />
+        <child link="base_link" />
+    </joint>
+    <link name="base_link">
+        <inertial>
+            <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+            <mass value="2.4607" />
+            <inertia ixx="0.0069217" ixy="-1.0599E-06" ixz="1.1757E-07" iyy="0.012469" iyz="2.0494E-07" izz="0.0076194" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/base_link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.79216 0.81961 0.93333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/base_link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="Link_1">
+        <inertial>
+            <origin xyz="-0.026118 -1.7545E-05 -0.11163" rpy="0 0 0" />
+            <mass value="2.6429" />
+            <inertia ixx="0.0067366" ixy="-1.1774E-06" ixz="8.9568E-05" iyy="0.0097419" iyz="2.9557E-07" izz="0.0057265" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_1.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.79216 0.81961 0.93333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_1.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <!--joint1.................-->
+    <joint name="Joint_1" type="revolute">
+        <origin xyz="0.25645 -0.2011 0.20188" rpy="-3.1416 0 0.020516" />
+        <parent link="base_link" />
+        <child link="Link_1" />
+        <axis xyz="0 0 1" />
+        <limit lower="0" upper="6.28318530718" effort="300" velocity="1" />
+    </joint>
+    <link name="Link_2">
+        <inertial>
+            <origin xyz="0.0032077 1.2812E-07 -0.24166" rpy="0 0 0" />
+            <mass value="1.3839" />
+            <inertia ixx="0.0068039" ixy="-6.6512E-06" ixz="7.6969E-06" iyy="0.0081999" iyz="-1.9388E-08" izz="0.0021627" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_2.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.79216 0.81961 0.93333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_2.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <!--joint2............-->
+    <joint name="Joint_2" type="revolute">
+        <origin xyz="0 0 -0.145" rpy="0 -0.050649 0" />
+        <parent link="Link_1" />
+        <child link="Link_2" />
+        <axis xyz="0 1 0" />
+        <limit lower="-1.6" upper="1.28318530718" effort="300" velocity="1" />
+    </joint>
+    <link name="Link_3">
+        <inertial>
+            <origin xyz="0.18475 -6.2782E-05 0.0021847" rpy="0 0 0" />
+            <mass value="0.90865" />
+            <inertia ixx="0.00095312" ixy="-9.4802E-08" ixz="3.6486E-06" iyy="0.0038465" iyz="-2.0287E-06" izz="0.0031374" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_3.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.79216 0.81961 0.93333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_3.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <!--joint3..............-->
+    <joint name="Joint_3" type="revolute">
+        <origin xyz="0 0 -0.35" rpy="0 0.73901 0" />
+        <parent link="Link_2" />
+        <child link="Link_3" />
+        <axis xyz="0 1 0" />
+        <limit lower="-1.0" upper="3.0" effort="300" velocity="1" />
+    </joint>
+    <link name="Link_4">
+        <inertial>
+            <origin xyz="0.00083749 -0.00079123 0.1299" rpy="0 0 0" />
+            <mass value="0.14099" />
+            <inertia ixx="5.7263E-05" ixy="7.6437E-08" ixz="1.4886E-06" iyy="5.8182E-05" iyz="-2.763E-09" izz="4.1521E-05" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_4.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.79216 0.81961 0.93333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/Link_4.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <!--joint4........-->
+    <joint name="Joint_4" type="revolute">
+        <origin xyz="0.27 0 0" rpy="0 0.81997 0" />
+        <parent link="Link_3" />
+        <child link="Link_4" />
+        <axis xyz="0 1 0" />
+        <limit lower="-1.2" upper="2.78" effort="300" velocity="1" />
+    </joint>
+    <link name="End_Effector">
+        <inertial>
+            <origin xyz="1.2361E-05 -1.7117E-05 0.010046" rpy="0 0 0" />
+            <mass value="0.026759" />
+            <inertia ixx="6.1889E-06" ixy="-7.12E-08" ixz="-9.3008E-08" iyy="5.8567E-06" iyz="1.4823E-08" izz="1.1614E-05" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/End_Effector.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.79216 0.81961 0.93333 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/End_Effector.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <!--joint5...............-->
+    <joint name="Joint_5" type="revolute">
+        <origin xyz="0 -0.0005 0.17384" rpy="0 0 0.28549" />
+        <parent link="Link_4" />
+        <child link="End_Effector" />
+        <axis xyz="0 0 1" />
+        <limit lower="0" upper="6.28318530718" effort="300" velocity="1" />
+    </joint>
+    <link name="tool_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/tool1.STL" />
+            </geometry>
+            <!-- <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material> -->
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://igus_robot/meshes/tool1.STL" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+    <joint name="tool_joint" type="fixed">
+        <origin xyz="0 0 .015" rpy="0 0 0" />
+        <parent link="End_Effector" />
+        <child link="tool_link" />
+    </joint>
+    <transmission name="trans_Joint_1">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="Joint_1">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="Joint_1_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_Joint_2">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="Joint_2">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="Joint_2_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_Joint_3">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="Joint_3">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="Joint_3_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_Joint_4">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="Joint_4">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="Joint_4_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_Joint_5">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="Joint_5">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="Joint_5_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <gazebo>
+        <plugin name="gazebo_ros_control">
+            <robotNamespace>/</robotNamespace>
+        </plugin>
+    </gazebo>
+</robot>
+
