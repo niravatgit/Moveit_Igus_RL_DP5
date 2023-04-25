@@ -398,4 +398,45 @@
     <child
       link="tool_link" />
   </joint>
+  
+  
+  
+   <link
+    name="h1_link">
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://igus_robot/meshes/tool2.stl" />
+      </geometry>
+      <!-- <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material> -->
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://igus_robot/meshes/tool2.stl" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="h1_joint"
+    type="fixed">
+    <origin
+      xyz="0.74603 -0.19055 0.11719"
+      rpy="0 0 0" />
+    <parent
+      link="world" />
+    <child
+      link="h1_link" />
+  </joint>
 </robot>
