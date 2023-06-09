@@ -157,13 +157,13 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 3.13 0"/>
       <geometry>
-	<mesh filename="package://rldp5_description/mesh/tool1.STL"/>
+	<mesh filename="package://rldp5_description/mesh/tool1.stl"/>
      </geometry>
      </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 3.13 0"/>
       <geometry>
-	<mesh filename="package://rldp5_description/mesh/tool1.STL"/>
+	<mesh filename="package://rldp5_description/mesh/tool1.stl"/>
       </geometry>
     </collision>
   </link> 
@@ -265,7 +265,7 @@
     <!-- gazebo ros_control plugin -->
     <gazebo>
         <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-            <robotNamespace>/rldp5</robotNamespace>
+            <robotNamespace></robotNamespace>
             <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
             <legacyModeNS>true</legacyModeNS>
         </plugin>
