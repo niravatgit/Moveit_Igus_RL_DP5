@@ -74,16 +74,15 @@ class MyListener(roypy.IDepthDataListener):
         result = self.vis.update_geometry(self.pointcloud)
         self.vis.poll_events()
         self.vis.update_renderer()
-        
 
 def main ():
     platformhelper = PlatformHelper()
     parser = argparse.ArgumentParser (usage = __doc__)
     add_camera_opener_options (parser)
-    parser.add_argument ("--seconds", type=int, default=15, help="duration to capture data")
+    parser.add_argument ("--minutes", type=int, default=60, help="duration to capture data in minutes")
     options = parser.parse_args()
     opener = CameraOpener (options)
-    cam = opener.open_camera ()
+    cam = opener.open_camera () 
 
     print_camera_info (cam)
     print("isConnected", cam.isConnected())
@@ -110,28 +109,36 @@ def main ():
     cam.setUseCase(curUseCase)
 
     cam.startCapture()
-    # create a loop that will run for a time (default 15 seconds)
-    process_event_queue (q, l, options.seconds)
+    # create a loop that will run for the given amount of time (default 60 minutes)
+    process_event_queue(q, l, options.minutes)
     cam.stopCapture()
 
-def process_event_queue (q, painter, seconds):
-    # create a loop that will run for the given amount of time
-    t_end = time.time() + seconds
-    while time.time() < t_end:
+def process_event_queue(q, painter, minutes_to_display):
+    # Calculate the end time (current time + minutes_to_display)
+    t_end = time.time() + minutes_to_display * 60
+
+    # Use a flag to keep track of whether the user initiated a close event
+    window_closed = False
+
+    while time.time() < t_end and not window_closed:
         try:
-            # try to retrieve an item from the queue.
-            # this will block until an item can be retrieved
-            # or the timeout of 1 second is hit
             if len(q.queue) == 0:
                 item = q.get(True, 1)
             else:
-                for i in range (0, len (q.queue)):
+                for i in range(0, len(q.queue)):
                     item = q.get(True, 1)
         except queue.Empty:
-            # this will be thrown when the timeout is hit
             break
         else:
-            painter.paint (item)
+            # Update the painter with the new item
+            painter.paint(item)
+
+        # Check if the window is still open (events are still being processed)
+        window_closed = not painter.vis.poll_events()
+        painter.vis.update_renderer()
+
+    # Close the visualization window once the loop is done
+    painter.vis.destroy_window()
 
 if (__name__ == "__main__"):
     main()
