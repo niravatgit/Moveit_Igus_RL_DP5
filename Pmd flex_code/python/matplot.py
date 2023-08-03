@@ -1,64 +1,40 @@
-#!/usr/bin/python3
-
-import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import queue
 
-class MyListener:
-    def __init__(self, q):
-        self.queue = q
-        self.point_cloud = []
+# Simulated camera data (replace this with your actual camera data acquisition)
+def capture_camera_data():
+    # Simulated point cloud data: [x, y, z]
+    point_cloud = np.random.rand(100, 3) * 10  # Replace with actual point cloud data
+    return point_cloud
 
-    def onNewData(self, data):
-        self.queue.put(data)
+# Simulated waypoint selection (replace this with your waypoint selection logic)
+def select_waypoints(point_cloud):
+    # Simulated waypoint selection: Choose random points from the point cloud
+    num_waypoints = 5
+    selected_indices = np.random.choice(len(point_cloud), num_waypoints, replace=False)
+    selected_waypoints = point_cloud[selected_indices]
+    return selected_waypoints
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--duration", type=int, default=60, help="Capture duration in seconds")
-    options = parser.parse_args()
+# Generate and select data
+camera_data = capture_camera_data()
+waypoints = select_waypoints(camera_data)
 
-    q = queue.Queue()
-    listener = MyListener(q)
+# Visualization using Matplotlib's 3D plot
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+# Plot captured camera data (point cloud)
+ax.scatter(camera_data[:, 0], camera_data[:, 1], camera_data[:, 2], c='b', marker='o', label='Camera Data')
 
-    # Simulating real-time point cloud capture (replace this with your actual data source)
-    for _ in range(options.duration):
-        point_cloud = np.random.rand(100, 3) * 10  # Simulated point cloud data
-        listener.onNewData(point_cloud)
+# Plot selected waypoints
+ax.scatter(waypoints[:, 0], waypoints[:, 1], waypoints[:, 2], c='r', marker='s', s=100, label='Waypoints')
 
-        # Plot the point cloud
-        ax.clear()
-        ax.scatter(point_cloud[:, 0], point_cloud[:, 1], point_cloud[:, 2], c='b', marker='o')
-        plt.draw()
-        plt.pause(0.1)
+# Add labels and legend
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.set_title('Waypoint Path Visualization')
+ax.legend()
 
-    # Get user input for selected point (replace this with your actual point selection logic)
-    selected_index = int(input("Enter the index of the selected point: "))
-    selected_point = point_cloud[selected_index]
-
-    # Simulated waypoint calculation (replace this with your actual waypoint calculation)
-    waypoints = [
-        selected_point,
-        selected_point + np.array([1, 1, 1]),
-        selected_point - np.array([1, 1, 1]),
-    ]
-
-    # Visualize waypoints using Matplotlib
-    visualize_waypoints(waypoints)
-
-def visualize_waypoints(waypoints):
-    waypoints = np.array(waypoints)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(waypoints[:, 0], waypoints[:, 1], waypoints[:, 2], c='r', marker='o')
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    plt.show()
-
-if __name__ == "__main__":
-    main()
+plt.show()
