@@ -71,13 +71,13 @@ def point_cloud_callback(msg):
     scatter = ax.scatter(selected_x, selected_y, selected_z, c=selected_distances, cmap='viridis', marker='o')
 
     # Add color bar to show normalized distance values
-    plt.colorbar(scatter, ax=ax, label='Normalized Distance from Reference Point')
+   # plt.colorbar(scatter, ax=ax, label='Normalized Distance from Reference Point')
 
     # Set labels and title
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    plt.title('Point Cloud Visualization with 180-degree Rotation along X-Axis (Within {} m from Reference)'.format(MAX_DISTANCE))
+   # plt.title('Point Cloud Visualization with 180-degree Rotation along X-Axis (Within {} m from Reference)'.format(MAX_DISTANCE))
 
     # Show the plot
     plt.show()
