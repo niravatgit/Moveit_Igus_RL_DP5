@@ -1,8 +1,9 @@
+#!/usr/bin/env python
+
 import rospy
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import std_msgs.msg
 import numpy as np
 
 # Define the region of interest (ROI) limits
@@ -18,16 +19,47 @@ REFERENCE_X = 0.0
 REFERENCE_Y = 0.0
 REFERENCE_Z = 0.0
 
-# Maximum distance from the reference point for visualization
+# Maximum distance from the reference point for filtering
 MAX_DISTANCE = 1.2
+
+# Rotation angle in degrees
+ROTATION_ANGLE_X = 180.0  # Rotate 180 degrees along X-axis
+
+# Translation values (adjust as needed)
+TRANSLATION_X = 0.0
+TRANSLATION_Y = 0.0
+TRANSLATION_Z = 1.2
 
 def calculate_distance(x, y, z):
     return np.sqrt((x - REFERENCE_X)**2 + (y - REFERENCE_Y)**2 + (z - REFERENCE_Z)**2)
 
-def normalize_distance(dist):
-    return (dist - 0) / (MAX_DISTANCE - 0)  # Normalize to [0, 1] range
+def publish_point_cloud(filtered_points, pc_publisher):
+    header = std_msgs.msg.Header()
+    header.stamp = rospy.Time.now()
+    header.frame_id = "royale_camera_link"  # Set the appropriate frame ID
 
-def point_cloud_callback(msg):
+    pc_data = pc2.create_cloud_xyz32(header, filtered_points)
+    pc_publisher.publish(pc_data)
+
+def rotate_point_cloud(point_cloud, angle_degrees):
+    # Convert the angle to radians
+    angle_rad = np.radians(angle_degrees)
+
+    # Rotation matrix along the X-axis
+    rotation_matrix = np.array([[1, 0, 0],
+                                 [0, np.cos(angle_rad), -np.sin(angle_rad)],
+                                 [0, np.sin(angle_rad), np.cos(angle_rad)]])
+
+    # Apply the rotation to each point in the point cloud
+    rotated_points = [np.dot(rotation_matrix, point) for point in point_cloud]
+
+    return rotated_points
+
+def translate_point_cloud(point_cloud, translation):
+    translated_points = [point + translation for point in point_cloud]
+    return translated_points
+
+def point_cloud_callback(msg, pc_publisher):  # Pass pc_publisher as an argument
     # Extract point cloud data
     pc_data = pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True)
 
@@ -46,48 +78,31 @@ def point_cloud_callback(msg):
                        ROI_Y_MIN <= y_val <= ROI_Y_MAX and
                        ROI_Z_MIN <= z_val <= ROI_Z_MAX]
 
-    # Unzip filtered points
-    filtered_x, filtered_y, filtered_z = zip(*filtered_points)
-
-    # Apply 180-degree rotation along x-axis
-    rotated_x = filtered_x
-    rotated_y = [-val for val in filtered_y]
-    rotated_z = [-val for val in filtered_z]
-
-    # Calculate distances from reference point and normalize
-    distances = [calculate_distance(x_val, y_val, z_val) for x_val, y_val, z_val in zip(rotated_x, rotated_y, rotated_z)]
-    normalized_distances = [normalize_distance(dist) for dist in distances]
+    # Calculate distances from reference point
+    distances = [calculate_distance(x_val, y_val, z_val) for x_val, y_val, z_val in filtered_points]
 
     # Filter points within the desired distance range
-    selected_indices = [i for i, dist in enumerate(distances) if dist <= MAX_DISTANCE]
-    selected_x = [rotated_x[i] for i in selected_indices]
-    selected_y = [rotated_y[i] for i in selected_indices]
-    selected_z = [rotated_z[i] for i in selected_indices]
-    selected_distances = [normalized_distances[i] for i in selected_indices]
+    filtered_points = [point for point, dist in zip(filtered_points, distances) if dist <= MAX_DISTANCE]
 
-    # Create 3D scatter plot
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter(selected_x, selected_y, selected_z, c=selected_distances, cmap='viridis', marker='o')
+    # Rotate the filtered point cloud by 180 degrees along X-axis
+    rotated_points = rotate_point_cloud(filtered_points, ROTATION_ANGLE_X)
 
-    # Add color bar to show normalized distance values
-   # plt.colorbar(scatter, ax=ax, label='Normalized Distance from Reference Point')
+    # Translate the rotated point cloud
+    translation_vector = [TRANSLATION_X, TRANSLATION_Y, TRANSLATION_Z]
+    translated_points = translate_point_cloud(rotated_points, translation_vector)
 
-    # Set labels and title
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-   # plt.title('Point Cloud Visualization with 180-degree Rotation along X-Axis (Within {} m from Reference)'.format(MAX_DISTANCE))
-
-    # Show the plot
-    plt.show()
+    # Publish the translated point cloud for RViz visualization
+    publish_point_cloud(translated_points, pc_publisher)
 
 def main():
     # Initialize ROS node
     rospy.init_node('point_cloud_subscriber', anonymous=True)
 
-    # Subscribe to point cloud topic
-    rospy.Subscriber("/royale_cam0/point_cloud", PointCloud2, point_cloud_callback)
+    # Create a publisher for the translated point cloud
+    pc_publisher = rospy.Publisher("/translated_point_cloud", PointCloud2, queue_size=10)
+
+    # Subscribe to point cloud topic and pass pc_publisher as an argument
+    rospy.Subscriber("/royale_cam0/point_cloud", PointCloud2, point_cloud_callback, pc_publisher)
 
     # Keep the program running until it's terminated
     rospy.spin()
