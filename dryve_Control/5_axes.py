@@ -37,6 +37,7 @@ class D1:
         self.Axis=Axis # Label for the connected D1
                                         
         # Definition of important Telegrams
+        self.current_position_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 100, 0, 0, 0, 0, 2]) # Send Telegram(TX) Read Statusword 6064h "Current position"; refer to manual chapter "RX/TX Telegram Example"
         self.status_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2]) # Send Telegram(TX) Read Statusword 6041h "Status Request"; refer to manual chapter "RX/TX Telegram Example"
         self.shutdown_array = bytearray([0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 6, 0]) # Send Telegram(TX) Write Controlword 6040h Command: Shutdown; refer to manual chapter "RX/TX Telegram Example"
         self.switchOn_array = bytearray([0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 7, 0]) # Send Telegram(TX) Write Controlword 6040h Command: Switch on; refer to manual chapter "RX/TX Telegram Example"
@@ -95,6 +96,9 @@ class D1:
                 sequence[i]=256+sequence[i]
         return sequence
 
+    #function to get current position
+    def get_current_position(self):
+        print(self.sendCommand(self.current_position_array))
     # Function "Shutdown"; can be used to shutdown the D1 controler; further information see manual chapter "State Machine Visualisation after Boot Up"
     def set_shutdn(self):      
         self.sendCommand(self.shutdown_array) # Send Telegram(TX) Write Controlword 6040h Command: Shutdown
@@ -218,6 +222,8 @@ speed=5
 accel=100
 homespeed=10
 homeaccel=100
+while True:
+    get_current_position()
 # Homing of X and Yaxis; only one time to allow absolute movement
 if True:
     Xaxis.homing(homespeed, homeaccel) # Homing (Switch search speed[mm/s], Acceleration for Homing[mm/s²])
