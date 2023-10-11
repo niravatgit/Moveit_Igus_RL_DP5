@@ -114,13 +114,22 @@ class D1:
         return list(self.res)
 
     def getPosition(self):
-        self.getPositionFromDryve = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, read, 0, 0, 0x60, 0x64, 0, 0, 0, 0, 4])
-        self.positionRaw = self.sendCommand(self.getPositionFromDryve)
-        self.position = 0
+        getPositionFromDryve = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, read, 0, 0, 0x60, 0x64, 0, 0, 0, 0, 4])
+        positionRaw = self.sendCommand(getPositionFromDryve)
+
+        raw_position = 0
         for i in range(4):
-            self.position = self.position + self.positionRaw[i+19] * 256 ** i
-        self.position = self.position / 100  # Divide position by 100 to get the decimal value
-        return "{:.2f}".format(self.position)  # Format position with 2 decimal places
+            raw_position = raw_position + positionRaw[i + 19] * 256 ** i
+
+        sign_bit = (raw_position & 0x80000000)
+
+        if sign_bit:
+            position = -((raw_position ^ 0xFFFFFFFF) + 1) / 100
+        else:
+            position = raw_position / 100
+
+        return "{:.2f}".format(position)
+    
 
     def targetPosition(self,angle, rw=1):
         self.setMode(1)
