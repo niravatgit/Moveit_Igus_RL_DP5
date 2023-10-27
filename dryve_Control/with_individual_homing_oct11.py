@@ -272,19 +272,20 @@ class ClickAndHoldApp:
         print(f"Stopped holding Axis {axis + 1}")
 
     def start_individual_homing(self, axis):
-        self.axis_controller.axes[axis].homing()
         print(f"Started homing Axis {axis + 1}")
+        self.axis_controller.axes[axis].homing()
+
 
     def start_homing(self):
         for axis in self.axis_controller.axes:
-            axis.homing()
             print(f"Started homing {axis.Axis}")
+            axis.homing()
 
     def update_timer(self):
         for axis, label in zip(self.axis_controller.axes, self.position_labels):
             position = axis.getPosition()
             label.config(text=f"{axis.Axis} Position: {position}")
-        self.root.after(1000, self.update_timer)
+        self.root.after(50, self.update_timer)
 
 class D1AxisController:
     def __init__(self):
