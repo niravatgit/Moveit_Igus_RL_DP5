@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rldp5">
+
+    <!-- Useful Variables (Properties) -->
+    <xacro:property name="effort" value="10" />
+    <xacro:property name="velocity" value="10" />
+
+    <!-- Useful Macros -->
+    <xacro:macro name="default_inertial" params="mass">
+        <inertial>
+            <mass value="${mass}" />
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+                     iyy="1.0" iyz="0.0"
+                     izz="1.0" />
+        </inertial>
+    </xacro:macro>
+    <xacro:macro name="default_transmission" params="number">
+        <transmission name="transmission_${number}">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="joint_${number}">
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="motor_${number}">
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+    </xacro:macro>
+
+    <!-- Links -->
+    <link name="world"/>
+
+    <link name="base_link">
+        <inertial>
+            <origin xyz="0.04223218345086115 -0.01938787744257538 0.057495548139883904" rpy="0 0 0"/>
+            <mass value="2.4067491698035863"/>
+            <inertia ixx="0.008466" iyy="0.018795" izz="0.024001" ixy="0.002277" iyz="-0.000333" ixz="-0.000705"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/base_link.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/base_link.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="link_1">
+        <inertial>
+            <origin xyz="0.02666189292548051 -4.87712308473133e-07 0.11114216106472456" rpy="0 0 0"/>
+            <mass value="2.489938203553284"/>
+            <inertia ixx="0.010589" iyy="0.021835" izz="0.017706" ixy="3e-06" iyz="-0.0" ixz="0.002056"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 -0.1022"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_1.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0 -0.1022"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_1.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="link_2">
+        <inertial>
+            <origin xyz="-0.0025797033685453323 0.08740384931769365 0.23089426213956546" rpy="0 0 0"/>
+            <mass value="1.7064644306239998"/>
+            <inertia ixx="0.027922" iyy="0.027117" izz="0.005495" ixy="1.4e-05" iyz="-3.8e-05" ixz="0.000507"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0875 -0.2472"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_2.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0875 -0.2472"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_2.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="link_3">
+        <inertial>
+            <origin xyz="-0.17767994097579132 0.07055070946330594 -0.0021365928026594316" rpy="0 0 0"/>
+            <mass value="0.8476040154017905"/>
+            <inertia ixx="0.001758" iyy="0.008757" izz="0.008954" ixy="-4e-06" iyz="-3e-06" ixz="-0.000161"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0706 -0.5972"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_3.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0706 -0.5972"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_3.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="link_4">
+        <inertial>
+            <origin xyz="-0.00026026868676498616 0.05460448637419659 -0.095038323418843" rpy="0 0 0"/>
+            <mass value="0.2564792674883184"/>
+            <inertia ixx="0.001174" iyy="0.0011" izz="0.000275" ixy="-0.0" iyz="0.0" ixz="-1e-06"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0.27 0.0546 -0.5972"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_4.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.27 0.0546 -0.5972"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/link_4.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="eef">
+        <inertial>
+            <origin xyz="-1.311241328183499e-06 2.1073781334110024e-05 -0.0010894994201211539" rpy="0 0 0"/>
+            <mass value="0.0722497566624133"/>
+            <inertia ixx="1.7e-05" iyy="1.7e-05" izz="3.3e-05" ixy="-0.0" iyz="-0.0" ixz="-0.0"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0.27 -0.0 -0.4132"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/eef.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.27 -0.0 -0.4132"/>
+            <geometry>
+                <mesh filename="package://rldp5_description/mesh/eef.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="tl_link">
+        <visual>
+        <origin xyz="0 0 0" rpy="0 3.13 0"/>
+        <geometry>
+        <mesh filename="package://rldp5_description/mesh/tool1.STL"/>
+        </geometry>
+        </visual>
+        <collision>
+        <origin xyz="0 0 0" rpy="0 3.13 0"/>
+        <geometry>
+        <mesh filename="package://rldp5_description/mesh/tool1.STL"/>
+        </geometry>
+        </collision>
+    </link> 
+
+    <link name="tool_link"></link>
+
+
+    
+    <!-- Joints -->  
+    <joint name="virtual_joint" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint> 
+
+    <joint name ="joint_1" type="revolute">
+        <parent link="base_link"/>
+        <child link = "link_1"/>
+        <origin xyz="0.0 0.0 0.1022"/>
+        <axis xyz="-0.0 0.0 -1.0"/>
+        <limit upper="3.141593" lower="0.0" effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_2" type="revolute">
+        <parent link="link_1"/>
+        <child link = "link_2"/>
+        <origin xyz="0.0 -0.0875 0.145"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit upper="0.872665" lower="-0.872665" effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_3" type="revolute">
+        <parent link="link_2"/>
+        <child link = "link_3"/>
+        <origin xyz="0.0 0.0169 0.35"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit upper="3.752458" lower="-0.523599" effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_4" type="revolute">
+        <parent link="link_3"/>
+        <child link = "link_4"/>
+        <origin xyz="-0.27 0.016 0.0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit upper="3.752458" lower="-0.785398" effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="joint_5" type="revolute">
+        <parent link="link_4"/>
+        <child link = "eef"/>
+        <origin xyz="0.0 0.0546 -0.184"/>
+        <axis xyz="0.0 0.0 -1.0"/>
+        <limit upper="6.283185" lower="0.0" effort="${effort}" velocity="${velocity}"/>
+    </joint>
+
+    <joint name ="eef_to_tool" type="fixed">
+        <parent link="eef"/>
+        <child link = "tl_link"/>
+        <origin xyz="0 0 0"/>
+    </joint>
+
+     <joint name ="tool_joint" type="fixed">
+        <parent link="tl_link"/>
+        <child link = "tool_link"/>
+        <origin xyz="0 0 0"/>
+    </joint> 
+
+    <!-- Transmissions-->
+    <xacro:default_transmission number="1"/>
+    <xacro:default_transmission number="2"/>
+    <xacro:default_transmission number="3"/>
+    <xacro:default_transmission number="4"/>
+    <xacro:default_transmission number="5"/>  
+
+    <!-- gazebo ros_control plugin -->
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace></robotNamespace>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+            <legacyModeNS>true</legacyModeNS>
+        </plugin>
+
+    </gazebo>
+
+</robot>

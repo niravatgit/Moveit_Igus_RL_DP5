@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: rldp5_description
+    relative_path: urdf/rldp5.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/igus_robolink_rl_dp_5.srdf
+  CONFIG:
+    author_name: inspireLab
+    author_email: nirav.robotics@gmail.com
+    generated_timestamp: 1698667564
