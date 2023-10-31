@@ -251,13 +251,30 @@ class ClickAndHoldApp:
             clockwise_button.bind("<ButtonPress-1>", lambda event, axis=axis: self.start_clockwise(event, axis))
             clockwise_button.bind("<ButtonRelease-1>", lambda event, axis=axis: self.stop_jogging(event, axis))
 
+
             homing_button = tk.Button(frame, text=f"Axis {axis + 1} Homing", command=lambda axis=axis: self.start_individual_homing(axis))
             homing_button.grid(row=axis + 1, column=5, padx=10, pady=5)
+
+            jog_plus_button = tk.Button(frame, text=f"Axis {axis + 1} Jog+")
+            jog_plus_button.grid(row=axis + 1, column=6, padx=10, pady=5)
+            jog_plus_button.bind("<ButtonPress-1>", lambda event, axis=axis: self.jog(event, axis, direction))
+            jog_plus_button.bind("<ButtonRelease-1>", lambda event, axis=axis: self.stop_jogging(event, axis))
+
+            jog_minus_button = tk.Button(frame, text=f"Axis {axis + 1} Jog-")
+            jog_minus_button.grid(row=axis + 1, column=7, padx=10, pady=5)
+            jog_minus_button.bind("<ButtonPress-1>", lambda event, axis=axis: self.jog(event, axis, direction))
+            jog_minus_button.bind("<ButtonRelease-1>", lambda event, axis=axis: self.stop_jogging(event, axis))
 
         homing_all_button = tk.Button(frame, text="Homing All", command=self.start_homing)
         homing_all_button.grid(row=6, column=0, columnspan=6, pady=20)
 
         self.update_timer()
+
+    def jog(self, event, axis, direction):
+        cur_position = axis.getPosition()
+        desired_postion = cur_position + direction*1;
+        self.axis_controller.setTargetPosition(axis, desired_postion)
+        print(f"Started jogging axis ", axis, "To desired position = ", desired_postion)
 
     def start_clockwise(self, event, axis):
         self.axis_controller.setTargetVelocity(axis, 500)
@@ -307,6 +324,10 @@ class D1AxisController:
     def setTargetVelocity(self, axis, velocity):
         if 0 <= axis < len(self.axes):
             self.axes[axis].targetVelocity(velocity)
+
+    def setTargetPosition(self, axis, desired_position):
+        if 0 <= axis < len(self.axes):
+            self.axes[axis].targetPosition(desired_position)
 
 if __name__ == "__main__":
     app = ClickAndHoldApp(root, D1AxisController(), position_labels)
