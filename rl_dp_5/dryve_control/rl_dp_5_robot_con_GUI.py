@@ -25,8 +25,15 @@ switchOnArray = bytearray(switchOn)
 enableOperation = [0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 0x60, 0x40, 0, 0, 0, 0, 2, 15, 0]
 enableOperationArray = bytearray(enableOperation)
 
+enableOperation_relative = [0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 79, 0]
+enableOperationArray_relative = bytearray(enableOperation_relative)
+
 feedrate_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 146, 1, 0, 0, 0, 4]) # Send Telegram(TX) Read Obejct 6092h subindex 1 for the feed rate
 SI_unit_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 168, 0, 0, 0, 0, 4]) # Send Telegram(TX) Read Object 60A8h for SI Unit Position
+sendTargetPosition =  = bytearray([ 0, 0, 0, 0, 0, 17, 0, 43, 13, 1, 0, 0, 96, 122, 0, 0, 0, 0, 4, 0, 0, 0, 0 ]);
+sendStartMovementRelArray = bytearray([0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 95, 0]);
+
+        #const unsigned char sendStartMovementRel[21] = { 0,0,0,0,0,15,0,43,13,1,0,0,96,64,0,0,0,0,2,95,0 };
 
 class D1:
     def __init__(self, IP_Adress, Port, Axis):
@@ -263,9 +270,10 @@ class D1:
         # Send Telegram(TX) Write Target Position 607Ah "Write Value"
         self.sendCommand(bytearray([0, 0, 0, 0, 0, 17, 0, 43, 13, 1, 0, 0, 96, 122, 0, 0, 0, 0, 4, self.to_four_byte(self.position_value)[0], self.to_four_byte(self.position_value)[1], self.to_four_byte(self.position_value)[2], self.to_four_byte(self.position_value)[3]]))
         # Enable Operation to set bit 4 of the controlword to low again; see manual chapter "Controlword"
-        self.sendCommand(enableOperationArray)
+        self.sendCommand(enableOperationArray_relative)
         # Send Telegram(TX) Write Controlword 6040h Command: Start Movement; high flank of bit 4
-        self.sendCommand(bytearray([0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 31, 0]))
+
+        self.sendCommand(sendStartMovementRelArray)
         # A new movement only starts after completing a movement and the target is reached
         #while (self.sendCommand(statusArray) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 39, 22]):
          #   time.sleep(0.01) #delay in seconds delay in seconds between checking for "target reached"
