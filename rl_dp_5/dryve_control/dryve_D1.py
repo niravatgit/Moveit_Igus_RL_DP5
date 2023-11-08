@@ -24,6 +24,7 @@
 import socket
 import time
 import struct
+DEBUG_PRINT = False
 
 # class definition for D1 controler; definiton of functions; establishing of the ethernet connection; basis settings and initialization
 # !!!How to declare object and call functions defined in the class to perform movements can be seen from line 202!!!
@@ -45,16 +46,15 @@ class D1:
         self.feedrate_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 146, 1, 0, 0, 0, 4]) # Send Telegram(TX) Read Obejct 6092h subindex 1 for the feed rate
         self.SI_unit_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 168, 0, 0, 0, 0, 4]) # Send Telegram(TX) Read Object 60A8h for SI Unit Position
         self.reset_array = bytearray([0, 0, 0, 0, 0, 15, 0, 43,13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 0, 1]) # Send Telegram(TX) Write Controlword 6040h Command to reset the dryve status
-        self.sendStartMovementRelArray = bytearray([0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 96, 64, 0, 0, 0, 0, 2, 95, 0]); # for realtive movement
 
         # Establish bus connection
         try:
             self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error:
-            print ('failed to create socket')         
+            self.debugPrint ('failed to create socket')         
         self.s.connect((IP_Adress, Port))
         if self.debug==True:
-            print ('Socket created')
+            self.debugPrint ('Socket created')
 
         # Initialize
         self.initialize()
@@ -85,7 +85,7 @@ class D1:
         res = self.s.recv(24)
         if self.debug==True:
             # Print response telegram
-            print(list(res))
+            self.debugPrint(list(res))
         return list(res)
 
     # Function to Convert Integer to 4 Byte; further information see manual chapter "Conversion Decimal into Double Word Decimal"
@@ -99,7 +99,7 @@ class D1:
 
     #function to get current position
     def get_current_position(self):
-        print(self.sendCommand(self.current_position_array))
+        self.debugPrint(self.sendCommand(self.current_position_array))
     # Function "Shutdown"; can be used to shutdown the D1 controler; further information see manual chapter "State Machine Visualisation after Boot Up"
     def set_shutdn(self):      
         self.sendCommand(self.shutdown_array) # Send Telegram(TX) Write Controlword 6040h Command: Shutdown
@@ -107,7 +107,7 @@ class D1:
             and self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 33, 22]
             and self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 33, 2]):
             if self.debug==True:
-                print("wait for shutdown")
+                self.debugPrint("wait for shutdown")
             if self.pause==True:          
                 time.sleep(0.01)  #delay in seconds between checking if mode is set
 
@@ -118,7 +118,7 @@ class D1:
             and self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 35, 22]
             and self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 35, 2]):
             if self.debug==True:
-                print("wait for Switch on")
+                self.debugPrint("wait for Switch on")
             if self.pause==True:          
                 time.sleep(0.01)  #delay in seconds between checking if mode is set
 
@@ -129,7 +129,7 @@ class D1:
             and self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 39, 22]
             and self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 39, 2]):
             if self.debug==True:
-                print("wait for op en")
+                self.debugPrint("wait for op en")
             if self.pause==True:          
                 time.sleep(0.01) #delay in seconds between checking if mode is set
     
@@ -148,7 +148,7 @@ class D1:
         # Wait for the mode to be set
         while (self.sendCommand(bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 97, 0, 0, 0, 0, 1])) != [0, 0, 0, 0, 0, 14, 0, 43, 13, 0, 0, 0, 96, 97, 0, 0, 0, 0, 1, mode]):
             if self.debug==True:
-                print("wait for mode")
+                self.debugPrint("wait for mode")
             if self.pause==True:          
                 time.sleep(0.01) #delay in seconds between checking if mode is set
 
@@ -157,7 +157,7 @@ class D1:
         # Checks the status if target was reached and a new setpoint is given, also if operation enabled
          while (self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 39, 22]):
                 if self.debug==True:
-                    print("wait for next command")
+                    self.debugPrint("wait for next command")
                 if self.pause==True:          
                     time.sleep(0.01) #delay in seconds between checking if target reached
 
@@ -180,7 +180,7 @@ class D1:
         # Check Statusword for signal referenced 
         while (self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 39, 22]):
                 if self.debug==True:
-                    print("wait for Homing to end")
+                    self.debugPrint("wait for Homing to end")
                 if self.pause==True:          
                     time.sleep(0.01) #delay in seconds between checking for reference status
         
@@ -208,65 +208,52 @@ class D1:
         if self.multi_move==False:
             while (self.sendCommand(self.status_array) != [0, 0, 0, 0, 0, 15, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2, 39, 22]):
                 if self.debug==True:
-                    print("wait for next command")
+                    self.debugPrint("wait for next command")
                 if self.pause==True:          
                     time.sleep(0.01) #delay in seconds delay in seconds between checking for "target reached"
+    def getPosition(self):
+        getPositionFromDryve = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 0x60, 0x64, 0, 0, 0, 0, 4])
+        positionRaw = self.sendCommand(getPositionFromDryve)
+        raw_position = 0
+        for i in range(4):
+            raw_position = raw_position + positionRaw[i + 19] * 256 ** i
 
-### Start Main Program: Object declaration and calling of functions defined in the class to perform movements ###
-# Setup the communication and initialization of the D1 controller    http://169.254.230.10/
-Xaxis=D1("169.254.0.1", 502, 'Linear X-Axis')  # Define D1 as X axis (IP_adress , Port , 'label')
-#Yaxis=D1("169.254.0.2", 502, 'Linear Y-Axis')  # Define D1 as Y axis (IP_adress , Port , 'label')
-#Zaxis=D1("169.254.0.3", 502, 'Linear Z-Axis')  # Define D1 as X axis (IP_adress , Port , 'label')
-#Aaxis=D1("169.254.0.4", 502, 'Linear A-Axis')  # Define D1 as Y axis (IP_adress , Port , 'label')
-#Baxis=D1("169.254.0.5", 502, 'Linear B-Axis')  # Define D1 as X axis (IP_adress , Port , 'label')
-speed=5
-accel=100
-homespeed=10
-homeaccel=100
-#while True:
- #   get_current_position()
-# Homing of X and Yaxis; only one time to allow absolute movement
-if True:
-    Xaxis.homing(homespeed, homeaccel) # Homing (Switch search speed[mm/s], Acceleration for Homing[mm/s²])
-    Xaxis.profile_pos_mode(50, homespeed, homeaccel)
-    time.sleep(0.1) # Wait for 100 ms before starting new movement
-    
-    #Yaxis.homing(homespeed, homeaccel) # Homing (Switch search speed[mm/s], Acceleration for Homing[mm/s²])
-    #Yaxis.profile_pos_mode(90, homespeed, homeaccel)
-    #time.sleep(0.1) # Wait for 100 ms before starting new movement
+        sign_bit = (raw_position & 0x80000000)
 
-    #Zaxis.homing(homespeed, homeaccel) # Homing (Switch search speed[mm/s], Acceleration for Homing[mm/s²])
-    #Zaxis.profile_pos_mode(115, homespeed, homeaccel)
-    #time.sleep(0.1) # Wait for 100 ms before starting new movement
+        if sign_bit:
+            position = -((raw_position ^ 0xFFFFFFFF) + 1) / 100
+        else:
+            position = raw_position / 100
 
-    #Aaxis.homing(homespeed, homeaccel) # Homing (Switch search speed[mm/s], Acceleration for Homing[mm/s²])
-    #Aaxis.profile_pos_mode(100, homespeed, homeaccel)
-    #time.sleep(0.1) # Wait for 100 ms before starting new movement
+        return (position)
 
-    #Baxis.homing(homespeed, homeaccel) # Homing (Switch search speed[mm/s], Acceleration for Homing[mm/s²])
-    #Baxis.profile_pos_mode(25, speed, 100)
-    #time.sleep(0.1) # Wait for 100 ms before starting new movement
-    
-# Change from while to if to stop the loop; True is set by default so that the commands are executed
-while False:
-    #Zaxis.profile_pos_mode(10,speed,accel)
-    Xaxis.multi_move=True
-    Yaxis.multi_move=True
-    Zaxis.multi_move=True
-    Aaxis.multi_move=True
-    Baxis.multi_move=True
-    Xaxis.profile_pos_mode(140,speed,accel)
-    Yaxis.profile_pos_mode(90,speed,accel)
-    Zaxis.profile_pos_mode(25,speed,accel)
-    Aaxis.profile_pos_mode(10,speed,accel)
-    Baxis.profile_pos_mode(112,speed,accel)
-    Xaxis.wait_for_ready()
-    Yaxis.wait_for_ready()
-    Zaxis.wait_for_ready()
-    Aaxis.wait_for_ready()
-    Baxis.wait_for_ready()
-    time.sleep(0)
-232.0, 34.0, 14.0, 145.0, 225.0
-69.0, 62.0, 102.0, 199.0, 279.0
-140.0, 81.0, 10.0, 32.0, 112.0
-140.0, 81.0, 10.0, 32.0, 112.0
+    def targetVelocity(self, target):
+        self.set_mode(3)
+
+        if target > 0xffff:
+            self.debugPrint("Invalid target velocity specified")
+        else:
+            targetVel2Byt = (target).to_bytes(4, byteorder='little', signed=True)
+
+            # set velocity of the profile
+            self.sendCommand(bytearray([0, 0, 0, 0, 0, 17, 0, 43, 13, 1, 0, 0, 0x60, 0xFF, 0, 0, 0, 0, 4]) + targetVel2Byt)
+
+    def profileVelocity(self, target):
+        def extractBytes(integer):
+            return divmod(integer, 0x100)[::-1]
+        
+        if target > 0xffff or target == 0:
+            self.debugPrint("Invalid target velocity specified")
+        else:
+            if target > 255:  # If the target is over 2 bytes large, split the data correctly into two separate bytes.
+                targetVel2Byt = extractBytes(target)
+                # set velocity and acceleration of the profile
+                self.sendCommand(bytearray([0, 0, 0, 0, 0, 15, 0, 43, 13, 1, 0, 0, 0x60, 0x81, 0, 0, 0, 0, 2, targetVel2Byt[0], targetVel2Byt[1]]))
+            elif target <= 255:
+                # set velocity and acceleration of the profile
+                self.sendCommand(bytearray(
+                    [0, 0, 0, 0, 0, 14, 0, 43, 13, 1, 0, 0, 0x60, 0x81, 0, 0, 0, 0, 1, target]))
+    def debugPrint(self, message):
+        if DEBUG_PRINT==True:
+            print(message)
+
