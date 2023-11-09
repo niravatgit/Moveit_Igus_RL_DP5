@@ -6,6 +6,8 @@
 
   <!-- Load the controllers -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args=""/>
+    output="screen" args="rl_dp_5_controllers_position joint_state_controller"/>
+
+  <node name="">
 
 </launch>
