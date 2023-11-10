@@ -5,8 +5,8 @@
   <rosparam file="$(find rl_dp_5_moveit)/config/ros_controllers.yaml" command="load"/>
 
   <!-- Load the controllers -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="rl_dp_5_controllers_position joint_state_controller"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"output="screen" 
+    args="/position_controllers/JointTrajectoryController /joint_state_controller/JointStateController /rl_dp_5/controllers/position"/>
 
   <node name="">
 
