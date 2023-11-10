@@ -1,11 +1,21 @@
 controller_list:
-    - name: /rl_dp_5/controllers/position
-      action_ns: follow_joint_trajectory
-      type: FollowJointTrajectory
-      default: true
-      joints:
-          - joint_1
-          - joint_2
-          - joint_3
-          - joint_4
-          - joint_5
+  - name: rl_dp_5_controllers_position
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+      - joint_5
+  - name: rldp5_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+      - joint_5

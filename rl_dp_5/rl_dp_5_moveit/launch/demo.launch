@@ -24,6 +24,7 @@
   <arg name="use_rviz" default="true" />
 
   <!-- If needed, broadcast static tf for robot root -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link" />
 
   <group if="$(eval arg('moveit_controller_manager') == 'fake')">
     <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
@@ -53,9 +54,8 @@
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
-  <!-- <include file="$(dirname)/moveit_rviz.launch"> -->
-  <include file="$(find rl_dp_5_moveit)/launch/moveit_rviz.launch" >
-    <arg name="config" value="true"/>
+  <include file="$(dirname)/moveit_rviz.launch" if="$(arg use_rviz)">
+    <arg name="rviz_config" value="$(dirname)/moveit.rviz"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 

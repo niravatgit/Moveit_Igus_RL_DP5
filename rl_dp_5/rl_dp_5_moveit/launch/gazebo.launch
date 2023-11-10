@@ -24,9 +24,11 @@
 
   <!-- Load the controller parameters onto the parameter server -->
   <rosparam file="$(find rl_dp_5_moveit)/config/gazebo_controllers.yaml" />
-  <rosparam file="$(find rl_dp_5_moveit)/config/ros_controllers.yaml" />
-  <!--<include file="$(dirname)/ros_controllers.launch"/>-->
+  <include file="$(dirname)/ros_controllers.launch"/>
 
   <!-- Spawn the Gazebo ROS controllers -->
   <node name="gazebo_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller" />
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 </launch>

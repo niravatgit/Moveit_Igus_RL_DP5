@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: inspireLab
     author_email: nirav.robotics@gmail.com
-    generated_timestamp: 1698667564
+    generated_timestamp: 1699622258
