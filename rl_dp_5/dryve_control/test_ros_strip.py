@@ -48,3 +48,36 @@ while not rospy.is_shutdown():
     joint_state_pub.publish(joint_state)
     
     rate.sleep()
+
+# New testing 12:00 PM 13-11-2023
+# ROS node 
+import rospy
+from std_msgs.msg import Float64
+
+# Publishers for velocity commands
+pubs = []
+for i in range(5):
+  topic = f'/axis_{i+1}/cmd_vel'
+  pub = rospy.Publisher(topic, Float64, queue_size=10)
+  pubs.append(pub)
+
+# Callback for anti-clockwise button  
+def anticlockwise_callback(axis):
+  velocity = -500 # negative for anticlockwise
+  pubs[axis].publish(velocity)
+  
+# Callback for stop jogging  
+def stop_callback(axis):
+  velocity = 0
+  pubs[axis].publish(velocity)
+  
+# Subscribers for button presses  
+for i in range(5):
+  rospy.Subscriber(f'/axis_{i+1}/anticlockwise', std_msgs.msg.Empty, 
+                  lambda msg, axis=i: anticlockwise_callback(axis))
+                  
+  rospy.Subscriber(f'/axis_{i+1}/stop', std_msgs.msg.Empty, 
+                  lambda msg, axis=i: stop_callback(axis))
+
+rospy.init_node('gui_node')
+rospy.spin()
