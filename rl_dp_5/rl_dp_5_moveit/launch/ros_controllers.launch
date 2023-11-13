@@ -3,6 +3,8 @@
 
   <!-- Load joint controller configurations from YAML file to parameter server -->
   <rosparam file="$(find rl_dp_5_moveit)/config/ros_controllers.yaml" command="load"/>
+  <rosparam file="$(find rl_dp_5_moveit)/config/simple_moveit_controllers.yaml" command="load"/>
+
 
   <!-- Load the controllers -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
