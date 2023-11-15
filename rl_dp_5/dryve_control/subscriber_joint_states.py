@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import JointState
-
+from moveit_commander import move_group as mg
+import moveit_msgs
 
 printJointStates = False
 
@@ -14,7 +15,6 @@ def joint_state_callback(data):
         print("Position of joints at timestamp " + str(time) + " :", list(data.position))
         printJointStates = False
 
-
 def listener():
     rospy.init_node('listener', anonymous=True)
     print("Printing Joint states of all joints")
@@ -23,12 +23,10 @@ def listener():
 
     return joint_state_positions
 
-
 if __name__ == '__main__':
     while not rospy.is_shutdown():
         listener()
-
-    rospy.spin()
+        rospy.spin()
 
 
 # #!/usr/bin/env python3
