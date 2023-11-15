@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import JointState
-from moveit_commander import move_group as mg
-import moveit_msgs
+import moveit_commander
 
 printJointStates = False
 
@@ -26,7 +25,9 @@ def listener():
 if __name__ == '__main__':
     while not rospy.is_shutdown():
         listener()
+
         rospy.spin()
+
 
 
 # #!/usr/bin/env python3
