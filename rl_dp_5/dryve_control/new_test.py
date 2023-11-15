@@ -55,3 +55,28 @@ if __name__ == "__main__":
         print("I do not understand this command. Please use one of the valid commands.")
         print_usage()
         sys.exit(1)
+
+
+------------------------------------------------------------------------------- 15-11-2023 ----------------------------------------------------------------------------------------------------
+Subscriber code:
+
+#!/usr/bin/env python3
+import rospy
+from sensor_msgs.msg import JointState
+
+rospy.init_node('joint_state_subscriber')
+
+last_msg = None
+
+def test_msg(msg):
+	global last_msg
+	last_msg = msg
+
+def print_msg(msg):
+  if(msg is not None):
+    print('The Joint States of the robot is:', msg)
+
+sub = rospy.Subscriber('/joint_states', JointState, test_msg, queue_size=1)
+
+while not rospy.is_shutdown():
+	print_msg(last_msg)
