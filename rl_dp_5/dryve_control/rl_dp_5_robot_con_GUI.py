@@ -101,11 +101,11 @@ class ClickAndHoldApp:
 class D1AxisController:
     def __init__(self):
         # Initialize your 5 D1 axes here
-        Aaxis = dryve.D1("169.254.0.1", 502, 'Axis 1')
-        Baxis = dryve.D1("169.254.0.2", 502, 'Axis 2')
-        Caxis = dryve.D1("169.254.0.3", 502, 'Axis 3')
-        Daxis = dryve.D1("169.254.0.4", 502, 'Axis 4')
-        Eaxis = dryve.D1("169.254.0.5", 502, 'Axis 5')
+        Aaxis = dryve.D1("169.254.0.1", 502, 'Axis 1', -140, -140, 140)
+        Baxis = dryve.D1("169.254.0.2", 502, 'Axis 2', -100, -100, 50)
+        Caxis = dryve.D1("169.254.0.3", 502, 'Axis 3', -115, -115, 115 )
+        Daxis = dryve.D1("169.254.0.4", 502, 'Axis 4', -100, -100, 100)
+        Eaxis = dryve.D1("169.254.0.5", 502, 'Axis 5', -180, -179, 179)
 
         self.axes = [Aaxis, Baxis, Caxis, Daxis, Eaxis]
 
