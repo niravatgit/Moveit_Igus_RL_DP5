@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Created by Laugesen, Nichlas O.; Dam, Elias Thomassen.
 # built from "Manual/Operating Manual dryve D1 EN V3.0.1.pdf"
 import socket
@@ -5,6 +7,12 @@ import time
 import tkinter as tk
 import struct
 import dryve_D1 as dryve
+import rospy
+from std_msgs.msg import Float64
+import math
+import rospy
+from std_msgs.msg import String 
+import sys
 
 #following are the fucntions that we want to expose through ROS
 #workspace will be /rl_dp_5
@@ -22,39 +30,36 @@ import dryve_D1 as dryve
 #start ROS Node code here
 
 
-
-
 speed=5
 accel=100
 homespeed=10
 homeaccel=100
 
-root = tk.Tk()
-root.title("Click and Hold")
+# Publishers for velocity commands
+pubs = []
+for i in range(5):
+  rospy.init_node(f'/status/joint_{i+1}', anonymous=True)
+  topic = f'/axis_{i+1}/cmd_vel'
+  pub = rospy.Publisher(topic, Float64, queue_size=10)
+  rate = rospy.Rate(1)
+  pubs.append(pub)
 
-frame = tk.Frame(root)
-frame.pack(padx=20, pady=20)
+def Command_Input():
+    print("Greetings! Here is how to use this program:")
+    print("  python rl_dp_5_robot_con_ROS.py command arguments")
+    print("The available commands are:")
+    print("  => 'home' - Requests homing of the robot") 
+    print("  => 'mode' OPERATION_MODE - Set the robot operation mode")
+    print("  => 'status' JOINT_POSITION - Shows the joint position")
 
-heading_label = tk.Label(frame, text="Axis Control Panel", font=("Helvetica", 16))
-heading_label.grid(row=0, column=0, columnspan=6, pady=(0, 20))
 
-position_labels = []
+class ROS_Nodes:
+    def __init__(self, axis_controller):
+      self.axis_controller = axis_controller
 
-# Create labels for displaying positions for each axis
-for axis in range(5):
-    position_label = tk.Label(frame, text=f"Axis {axis + 1} Position: 0.00")
-    position_label.grid(row=axis + 1, column=0, columnspan=3)
-    position_labels.append(position_label)
+    for axis in range(5):
+            
 
-class ClickAndHoldApp:
-    def __init__(self, root, axis_controller, position_labels):
-        self.root = root
-        self.position_labels = position_labels
-        self.axis_controller = axis_controller
-
-        for axis in range(5):
-            anticlockwise_button = tk.Button(frame, text=f"Axis {axis + 1} Anti-Clockwise")
-            anticlockwise_button.grid(row=axis + 1, column=3, padx=10, pady=5)
             anticlockwise_button.bind("<ButtonPress-1>", lambda event, axis=axis: self.start_anticlockwise(event, axis))
             anticlockwise_button.bind("<ButtonRelease-1>", lambda event, axis=axis: self.stop_jogging(event, axis))
 
@@ -77,10 +82,10 @@ class ClickAndHoldApp:
             jog_minus_button.bind("<ButtonPress-1>", lambda event, axis=axis: self.jog(event, axis, -1))
             jog_minus_button.bind("<ButtonRelease-1>", lambda event, axis=axis: self.stop_jogging(event, axis))
 
-        homing_all_button = tk.Button(frame, text="Homing All", command=self.start_homing)
-        homing_all_button.grid(row=6, column=0, columnspan=6, pady=20)
+            homing_all_button = tk.Button(frame, text="Homing All", command=self.start_homing)
+            homing_all_button.grid(row=6, column=0, columnspan=6, pady=20)
 
-        self.update_timer()
+            self.update_timer()
 
     def jog(self, event, axis, direction):
         cur_position = self.axis_controller.axes[axis].getPosition()
@@ -136,6 +141,66 @@ class D1AxisController:
         if 0 <= axis < len(self.axes):
             self.axes[axis].targetPosition(desired_position)
 
+
+
+
+# Callback for anti-clockwise button  
+def anticlockwise_callback(axis):
+  velocity = -500 # negative for anticlockwise
+  pubs[axis].publish(velocity)
+  
+# Callback for stop jogging  
+def stop_callback(axis):
+  velocity = 0
+  pubs[axis].publish(velocity)
+  
+# # Subscribers for button presses  
+# for i in range(5):
+#   rospy.Subscriber(f'cmd/axis_{i+1}/anticlockwise', std_msgs.msg.Empty, 
+#                   lambda msg, axis=i: anticlockwise_callback(axis))
+                  
+#   rospy.Subscriber(f'/axis_{i+1}/stop', std_msgs.msg.Empty, 
+#                   lambda msg, axis=i: stop_callback(axis))
+
+# rospy.init_node('gui_node')
+# rospy.spin()
+
 if __name__ == "__main__":
     app = ClickAndHoldApp(root, D1AxisController(), position_labels)
     root.mainloop()
+    
+    if len(sys.argv) < 2:
+        print_usage()
+        print("Please provide a valid command.")
+        sys.exit(1)
+
+    command = sys.argv[1]
+
+    if command == "home":
+        print("Requesting the robot to home itself.")
+        pub_cmd.publish("home")
+
+    elif command == "mode":
+        if len(sys.argv) < 3:
+            print("My apologies, the operation mode was not specified.")
+            print_usage()
+            sys.exit(1)
+
+        mode = sys.argv[2]
+        print("Asking to set mode to", mode)
+        pub_mode.publish(mode)
+
+    elif command == "cmd":
+        if len(sys.argv) < 3:
+            print("Sorry, the joint position was not specified.")
+            print_usage()
+            sys.exit(1)
+            
+        position = float(sys.argv[2])
+        print("Politely commanding joint to", position)
+        pub_cmd.publish(str(position))
+
+    else:
+        print("I do not understand this command. Please use one of the valid commands.")
+        print_usage()
+        sys.exit(1)
