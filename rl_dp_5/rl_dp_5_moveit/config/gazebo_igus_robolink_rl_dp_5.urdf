@@ -183,7 +183,6 @@
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-
     <transmission name="trans_joint_2">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="joint_2">
@@ -194,7 +193,6 @@
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-
     <transmission name="trans_joint_3">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="joint_3">
@@ -205,7 +203,6 @@
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-
     <transmission name="trans_joint_4">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="joint_4">
@@ -216,7 +213,6 @@
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-
     <transmission name="trans_joint_5">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="joint_5">
@@ -227,12 +223,10 @@
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-
     <gazebo>
-      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-        <robotNamespace>/</robotNamespace>
-      </plugin>
+        <plugin name="gazebo_ros_control">
+            <robotNamespace>/</robotNamespace>
+        </plugin>
     </gazebo>
-
 </robot>
 
