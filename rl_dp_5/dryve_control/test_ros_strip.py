@@ -204,3 +204,73 @@ if __name__ == "__main__":
         print("I do not understand this command. Please use one of the valid commands.")
         print_usage()
         sys.exit(1)
+
+--------------------------------------------------------------16-11-2023----------------------------------------------------------------------------------
+--------------------------------------------------------------Command Line args----------------------------------------------------------------------------------
+#!/usr/bin/env python3
+import rospy
+from sensor_msgs.msg import JointState
+import moveit_commander
+import sys
+
+# Import the D1 class from the provided program
+class D1:
+    # ... (Your existing D1 class code)
+
+def publish_joint_positions(joint_positions):
+    # Your existing publish_joint_positions function
+    pass
+
+def check_robot_status():
+    # Your existing check_robot_status function
+    pass
+
+def joint_state_callback(data):
+    # Your existing joint_state_callback function
+    pass
+
+def handle_commands(d1, command):
+    if command == 'home':
+        d1.homing(homespeedsw=your_speed, homeacc=your_acceleration)
+    elif command == 'mode1':
+        # Set mode 1 specific logic
+        print("Setting robot to mode 1. Add your logic here.")
+    elif command == 'mode2':
+        # Set mode 2 specific logic
+        print("Setting robot to mode 2. Add your logic here.")
+    elif command == 'status':
+        check_robot_status()
+    else:
+        print("Invalid command. Available commands: 'home', 'mode1', 'mode2', 'status'")
+        sys.exit(1)
+
+def listener(d1):
+    rospy.init_node('robot_controller', anonymous=True)
+
+    # Example joint positions, replace with your actual data
+    initial_joint_positions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+
+    # Check for command line arguments
+    if len(sys.argv) == 2:
+        command = sys.argv[1]
+        handle_commands(d1, command)
+
+    # Publish joint positions
+    publish_joint_positions(initial_joint_positions)
+
+    # Initialize MoveIt
+    moveit_commander.roscpp_initialize(sys.argv)
+
+    try:
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
+    finally:
+        # Shut down MoveIt
+        moveit_commander.roscpp_shutdown()
+
+if __name__ == '__main__':
+    # Replace with actual IP, port, and axis label
+    d1 = D1(IP_Adress="your_ip_address", Port=your_port, Axis="your_axis_label")
+    listener(d1)
+
