@@ -29,14 +29,16 @@ DEBUG_PRINT = False
 # class definition for D1 controler; definiton of functions; establishing of the ethernet connection; basis settings and initialization
 # !!!How to declare object and call functions defined in the class to perform movements can be seen from line 202!!!
 class D1:
-    def __init__(self, IP_Adress, Port, Axis):
+    def __init__(self, IP_Adress, Port, Axis, home_offset, min_pos, max_pos):
         self.debug=True # "True" = print command enabled, only for easier debugging, "False" = print command disabled 
         self.pause=True # "True" = enable delay, "False" = disable delay
         self.multi_move=False # "True" = simultaneous movements of the two controlers, "False" = movement has to be finished by one controler before starting a new one
         self.IP_Adress=IP_Adress # Define the IP Adress
         self.Socket=Port # Define the port (default:502) to create socket
         self.Axis=Axis # Label for the connected D1
-                                        
+        self.home_offset = home_offset #this will define correct signed position for each joint at the home/limit locations
+        self.min_pos = min_pos #this should be checked before sending to the controller to prevent mechanical brakdown, this is min absolute position for the joint                                
+        self.max_pos = max_pos #this should be checked before sending to the controller to prevent mechanical brakdown, this is max absolute position for the joint                                
         # Definition of important Telegrams
         self.current_position_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 100, 0, 0, 0, 0, 2]) # Send Telegram(TX) Read Statusword 6064h "Current position"; refer to manual chapter "RX/TX Telegram Example"
         self.status_array = bytearray([0, 0, 0, 0, 0, 13, 0, 43, 13, 0, 0, 0, 96, 65, 0, 0, 0, 0, 2]) # Send Telegram(TX) Read Statusword 6041h "Status Request"; refer to manual chapter "RX/TX Telegram Example"
@@ -186,6 +188,13 @@ class D1:
         
     # Function "Profile Position Mode"; Move to an absolute position[mm] with given velocity[mm/s] and acceleration[mm/s²]
     def profile_pos_mode(self,position,velo,acc):
+        #check if its within the bounds and then allow motion only if within the bounds
+        if position < self.min_pos or position>self.max_pos:
+            print('Requested OUT OF BOUND position')
+            return
+        #now apply home postion offset to issue absolute position command to the dryve
+        position = position - self.home_offset
+        print('Moving to absolute position ', position );
         self.velocity=int(velo * self.SI_unit_fact) # velocity multiplied by SI unit factor --> value that needs to be send by telegram
         self.acceleration=int(acc*self.SI_unit_fact) # acceleration multiplied by SI unit factor --> value that needs to be send by telegram
         self.position_value = int(position*self.SI_unit_fact) # positon in units
@@ -224,7 +233,8 @@ class D1:
             position = -((raw_position ^ 0xFFFFFFFF) + 1) / 100
         else:
             position = raw_position / 100
-
+        #apply home position ofset before sending it upstream
+        position = position + self.home_offset
         return (position)
 
     def targetVelocity(self, target):
