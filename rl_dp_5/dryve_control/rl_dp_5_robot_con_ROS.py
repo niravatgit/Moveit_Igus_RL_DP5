@@ -100,8 +100,10 @@ class MoveItInterface:
         # Check for repeated values
         if self.check_repeated_values(joint_state.position, 20):
             rospy.loginfo("Trajectory planned after 20 repeated positions.")
-            #trajectory_points.append(joint_state.position)
+            trajectory_points.append(joint_state.position)
             rospy.signal_shutdown("Trajectory planned.")
+            
+        print(trajectory_points)
 
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
