@@ -6,9 +6,9 @@ import tkinter as tk
 import struct
 import dryve_D1 as dryve
 
-#foilowing are the fucntions that we want to expose through ROS
+#following are the fucntions that we want to expose through ROS
 #workspace will be /rl_dp_5
-#1. publisher: /status for a joint such as {mode of oepration, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
+#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
 #2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
 #3. service: /home : this will call homing from dryve_D1.py -> check the arguments
 #4. subsriber: /cmd/set_joint_position : this will set desired joint position by calling profile_pos_mode -> check arguments
@@ -20,6 +20,8 @@ import dryve_D1 as dryve
 #
 #
 #start ROS Node code here
+
+
 
 
 speed=5
