@@ -80,3 +80,60 @@ sub = rospy.Subscriber('/joint_states', JointState, test_msg, queue_size=1)
 
 while not rospy.is_shutdown():
 	print_msg(last_msg)
+
+
+
+
+
+---------------------------------------18-11-2023-----------------------------------
+#!/usr/bin/env python
+
+import rospy
+from sensor_msgs.msg import JointState
+import socket
+import time
+import tkinter as tk
+import struct
+import dryve_D1 as dryve
+
+speed = 5
+accel = 100
+homespeed = 10
+homeaccel = 100
+
+class Rl_DP_5:
+    # ... (unchanged)
+
+class JointStatesSubscriber:
+    def __init__(self, robot):
+        self.robot = robot
+        rospy.init_node('joint_states_subscriber', anonymous=True)
+        self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+        self.position_history = []
+
+    def publish_current_positions(self):
+        joint_state = JointState()
+        joint_state.header.stamp = rospy.Time.now()
+        joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+        joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
+
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
+
+    def joint_states_callback(self, data):
+        # (unchanged)
+
+    def check_repeated_values(self, current_values, threshold):
+        # (unchanged)
+
+if __name__ == "__main__":
+    robot = Rl_DP_5()
+    joint_states_subscriber = JointStatesSubscriber(robot)
+
+    try:
+        while not rospy.is_shutdown():
+            joint_states_subscriber.publish_current_positions()
+            rospy.sleep(1)
+    except rospy.ROSInterruptException:
+        pass
+
