@@ -1,6 +1,7 @@
 # Created by Laugesen, Nichlas O.; Dam, Elias Thomassen.
 # built from "Manual/Operating Manual dryve D1 EN V3.0.1.pdf"
 import socket
+import rospy
 import time
 import tkinter as tk
 import struct
@@ -76,12 +77,31 @@ class Rl_DP_5:
 
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
+    printJointStates = False
+    
+    def joint_state_callback(data):
+        global printJointStates
+        printJointStates = data
+        #rospy.Header.frame_id = "Joint_States"
+        time = rospy.get_rostime()
+        if printJointStates:
+            print("Position of joints at timestamp " + str(time) + " :", list(data.position))
+            printJointStates = list(data.position)
+        return printJointStates
+
+    def listener():
+        rospy.init_node('listener', anonymous=True)
+        print("Printing Joint states of all joints")
+        joint_state_positions = rospy.Subscriber("/joint_states", JointState, joint_state_callback, queue_size=1)
+
+        pub = rospy.Publisher()
+
 
 if __name__ == "__main__":
-    #robot = Rl_DP_5()
-    #robot.homeAll()
+    robot = Rl_DP_5()
+    robot.homeAll()
     while True:
         for i in range(0,5):
-            print('Current Position of joint ', i, ': ', RL_DP_5.get_current_position(i))
+            print('Current Position of joint ', i, ': ', robot.get_current_position(i))
         
 
