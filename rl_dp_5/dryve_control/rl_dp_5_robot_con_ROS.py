@@ -9,6 +9,7 @@ import time
 import struct
 import dryve_D1 as dryve
 import numpy as np
+
 speed=5
 accel=100
 homespeed=5
@@ -67,7 +68,12 @@ class MoveItInterface:
 
         self.robot = robot
         rospy.init_node('joint_states_subscriber', anonymous=True)
-        self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+
+        # Subscriber to get joint states during trajectory planning from MoveIt
+        rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
+
+        # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
+        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         self.position_history = []
         
 
@@ -77,11 +83,12 @@ class MoveItInterface:
         joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
 
-        # Publish joint state
-        self.joint_states_pub.publish(joint_state)
+        # Publish joint state to simulate the robot pose in MoveIt
+        self.fake_controller_joint_states_pub.publish(joint_state)
 
 
     def joint_states_callback(self, data):
+        trajectory_points = []
         joint_state = JointState()
         joint_state.header = data.header
         joint_state.name = data.name
@@ -93,6 +100,7 @@ class MoveItInterface:
         # Check for repeated values
         if self.check_repeated_values(joint_state.position, 20):
             rospy.loginfo("Trajectory planned after 20 repeated positions.")
+            #trajectory_points.append(joint_state.position)
             rospy.signal_shutdown("Trajectory planned.")
 
     def check_repeated_values(self, current_values, threshold):
