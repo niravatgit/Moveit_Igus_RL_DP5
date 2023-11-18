@@ -1,9 +1,11 @@
 # Created by Laugesen, Nichlas O.; Dam, Elias Thomassen.
 # built from "Manual/Operating Manual dryve D1 EN V3.0.1.pdf"
-import socket
+
+#!/usr/bin/env python
 import rospy
+from sensor_msgs.msg import JointState
+import socket
 import time
-import tkinter as tk
 import struct
 import dryve_D1 as dryve
 speed=5
@@ -39,32 +41,10 @@ class Rl_DP_5:
 
         self.axis_controller = [Aaxis, Baxis, Caxis, Daxis, Eaxis]
 
-#    def setTargetVelocity(self, axis, velocity):
-#        if 0 <= axis < len(self):
-#            self.axis_controller[axis].targetVelocity(velocity)
 
     def setTargetPosition(self, axis, desired_absolute_position):
         if 0 <= axis < len(self):
             self.axis_controller[axis].profile_pos_mode(desired_absolute_position, 5,50)
-
-#    def jog(self, event, axis, direction):
-#        cur_position = self.axis_controller[axis].getPosition()
-#        print('Curent position =', self.axis_controller[axis].getPosition())
-#        desired_position = cur_position + direction*1
-#        self.axis_controller[axis].profile_pos_mode(desired_position, 5,50)
-#        print(f"Started jogging axis ", axis, "From current postion=", cur_position, " To desired position = ", desired_position)
-
-#    def start_clockwise(self, event, axis):
-#        self.axis_controller.setTargetVelocity(axis, 500)
-#        print(f"Started holding Axis {axis + 1} Clockwise")
-
-#    def start_anticlockwise(self, event, axis):
-#        self.axis_controller.setTargetVelocity(axis, -500)
-#        print(f"Started holding Axis {axis + 1} Anti-Clockwise")
-
-#    def stop_jogging(self, event, axis):
-#        self.axis_controller.setTargetVelocity(axis, 0)
-#        print(f"Stopped holding Axis {axis + 1}")
 
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
@@ -78,30 +58,37 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
     printJointStates = False
-    
-    def joint_state_callback(data):
-        global printJointStates
-        printJointStates = data
-        #rospy.Header.frame_id = "Joint_States"
-        time = rospy.get_rostime()
-        if printJointStates:
-            print("Position of joints at timestamp " + str(time) + " :", list(data.position))
-            printJointStates = list(data.position)
-        return printJointStates
 
-    def listener():
-        rospy.init_node('listener', anonymous=True)
-        print("Printing Joint states of all joints")
-        joint_state_positions = rospy.Subscriber("/joint_states", JointState, joint_state_callback, queue_size=1)
+class JointStatesSubscriber:
+    def __init__(self, robot):
+        self.robot = robot
+        rospy.init_node('joint_states_subscriber', anonymous=True)
+        self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+        self.position_history = []
 
-        pub = rospy.Publisher()
+    def publish_current_positions(self):
+        joint_state = JointState()
+        joint_state.header.stamp = rospy.Time.now()
+        joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+        joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
 
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
+
+    def joint_states_callback(self, data):
+        # (unchanged)
+
+    def check_repeated_values(self, current_values, threshold):
+        # (unchanged)
 
 if __name__ == "__main__":
     robot = Rl_DP_5()
-    robot.homeAll()
-    while True:
-        for i in range(0,5):
-            print('Current Position of joint ', i, ': ', robot.get_current_position(i))
-        
+    joint_states_subscriber = JointStatesSubscriber(robot)
+
+    try:
+        while not rospy.is_shutdown():
+            joint_states_subscriber.publish_current_positions()
+            rospy.sleep(1)
+    except rospy.ROSInterruptException:
+        pass
 
