@@ -8,9 +8,10 @@ import socket
 import time
 import struct
 import dryve_D1 as dryve
+import numpy as np
 speed=5
 accel=100
-homespeed=10
+homespeed=5
 homeaccel=100
 
 
@@ -40,6 +41,7 @@ class Rl_DP_5:
         Eaxis = dryve.D1("169.254.0.5", 502, 'Axis 5', -180, -179, 179)
 
         self.axis_controller = [Aaxis, Baxis, Caxis, Daxis, Eaxis]
+        print('Created dryve interfaces')
 
     def setTargetPosition(self, axis, desired_absolute_position):
         if 0 <= axis < len(self):
@@ -57,18 +59,23 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
 
-class JointStatesSubscriber:
+class MoveItInterface:
     def __init__(self, robot):
+#here we should have two things
+#1. Subsriber to joint_states from moveit to getjoint space trajectory to plannned pose
+#2. Published to fake_joint_controller to simulate the robot pose in Moveit based on current postiison of the real robot
+
         self.robot = robot
         rospy.init_node('joint_states_subscriber', anonymous=True)
         self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         self.position_history = []
+        
 
     def publish_current_positions(self):
         joint_state = JointState()
         joint_state.header.stamp = rospy.Time.now()
         joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
+        joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
 
         # Publish joint state
         self.joint_states_pub.publish(joint_state)
@@ -96,11 +103,11 @@ class JointStatesSubscriber:
         return False
 if __name__ == "__main__":
     robot = Rl_DP_5()
-    joint_states_subscriber = JointStatesSubscriber(robot)
+    move_it_interface = MoveItInterface(robot)
 
     try:
         while not rospy.is_shutdown():
-            joint_states_subscriber.publish_current_positions()
+            move_it_interface.publish_current_positions()
             rospy.sleep(1)
     except rospy.ROSInterruptException:
         pass
