@@ -1,8 +1,11 @@
 # Created by Laugesen, Nichlas O.; Dam, Elias Thomassen.
 # built from "Manual/Operating Manual dryve D1 EN V3.0.1.pdf"
+
+#!/usr/bin/env python
+import rospy
+from sensor_msgs.msg import JointState
 import socket
 import time
-import tkinter as tk
 import struct
 import dryve_D1 as dryve
 speed=5
@@ -32,38 +35,15 @@ class Rl_DP_5:
         # Initialize your 5 D1 axes here
         Aaxis = dryve.D1("169.254.0.1", 502, 'Axis 1', -140, -140, 140)
         Baxis = dryve.D1("169.254.0.2", 502, 'Axis 2', -100, -100, 50)
-        Caxis = dryve.D1("169.254.0.3", 502, 'Axis 3', -115, -115, 115 )
+        Caxis = dryve.D1("169.254.0.3", 502, 'Axis 3', -115, -115, 115)
         Daxis = dryve.D1("169.254.0.4", 502, 'Axis 4', -100, -100, 100)
         Eaxis = dryve.D1("169.254.0.5", 502, 'Axis 5', -180, -179, 179)
 
         self.axis_controller = [Aaxis, Baxis, Caxis, Daxis, Eaxis]
 
-#    def setTargetVelocity(self, axis, velocity):
-#        if 0 <= axis < len(self):
-#            self.axis_controller[axis].targetVelocity(velocity)
-
     def setTargetPosition(self, axis, desired_absolute_position):
         if 0 <= axis < len(self):
-            self.axis_controller[axis].profile_pos_mode(desired_absolute_position, 5,50)
-
-#    def jog(self, event, axis, direction):
-#        cur_position = self.axis_controller[axis].getPosition()
-#        print('Curent position =', self.axis_controller[axis].getPosition())
-#        desired_position = cur_position + direction*1
-#        self.axis_controller[axis].profile_pos_mode(desired_position, 5,50)
-#        print(f"Started jogging axis ", axis, "From current postion=", cur_position, " To desired position = ", desired_position)
-
-#    def start_clockwise(self, event, axis):
-#        self.axis_controller.setTargetVelocity(axis, 500)
-#        print(f"Started holding Axis {axis + 1} Clockwise")
-
-#    def start_anticlockwise(self, event, axis):
-#        self.axis_controller.setTargetVelocity(axis, -500)
-#        print(f"Started holding Axis {axis + 1} Anti-Clockwise")
-
-#    def stop_jogging(self, event, axis):
-#        self.axis_controller.setTargetVelocity(axis, 0)
-#        print(f"Stopped holding Axis {axis + 1}")
+            self.axis_controller[axis].profile_pos_mode(desired_absolute_position, 5, 50)
 
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
@@ -77,11 +57,51 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
 
+class JointStatesSubscriber:
+    def __init__(self, robot):
+        self.robot = robot
+        rospy.init_node('joint_states_subscriber', anonymous=True)
+        self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+        self.position_history = []
+
+    def publish_current_positions(self):
+        joint_state = JointState()
+        joint_state.header.stamp = rospy.Time.now()
+        joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+        joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
+
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
+
+
+    def joint_states_callback(self, data):
+        joint_state = JointState()
+        joint_state.header = data.header
+        joint_state.name = data.name
+        joint_state.position = data.position
+
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
+
+        # Check for repeated values
+        if self.check_repeated_values(joint_state.position, 20):
+            rospy.loginfo("Trajectory planned after 20 repeated positions.")
+            rospy.signal_shutdown("Trajectory planned.")
+
+    def check_repeated_values(self, current_values, threshold):
+        self.position_history.append(current_values)
+        if len(self.position_history) >= threshold:
+            recent_positions = self.position_history[-threshold:]
+            return all(positions == current_values for positions in recent_positions)
+        return False
 if __name__ == "__main__":
-    #robot = Rl_DP_5()
-    #robot.homeAll()
-    while True:
-        for i in range(0,5):
-            print('Current Position of joint ', i, ': ', robot.get_current_position(i))
-        
+    robot = Rl_DP_5()
+    joint_states_subscriber = JointStatesSubscriber(robot)
+
+    try:
+        while not rospy.is_shutdown():
+            joint_states_subscriber.publish_current_positions()
+            rospy.sleep(1)
+    except rospy.ROSInterruptException:
+        pass
 
