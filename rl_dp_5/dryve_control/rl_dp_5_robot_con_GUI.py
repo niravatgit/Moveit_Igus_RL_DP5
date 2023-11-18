@@ -7,7 +7,7 @@ import struct
 import dryve_D1 as dryve
 speed=5
 accel=100
-homespeed=10
+homespeed=5
 homeaccel=100
 
 root = tk.Tk()
