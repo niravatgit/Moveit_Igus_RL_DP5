@@ -117,10 +117,10 @@ class MoveItInterface:
             return all(positions == current_values for positions in recent_positions)
         return False
 if __name__ == "__main__":
-    robot = Rl_DP_5()
     print('Initialized an object for the robot')
-    move_it_interface = MoveItInterface(robot)
+    robot = Rl_DP_5()
     print('Initialized an object for Moveit interface')
+    move_it_interface = MoveItInterface(robot)
 
     try:
         while not rospy.is_shutdown():
