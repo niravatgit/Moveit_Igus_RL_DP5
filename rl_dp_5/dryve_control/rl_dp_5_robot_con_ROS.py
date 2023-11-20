@@ -91,6 +91,14 @@ class MoveItInterface:
     def execution_result_callback(self, data):
         self.execution_result = data
 
+    def is_trajectory_started(self):
+        return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
+
+    def is_trajectory_finished(self):
+        return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
+
+
+
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
         if len(self.position_history) >= threshold:
