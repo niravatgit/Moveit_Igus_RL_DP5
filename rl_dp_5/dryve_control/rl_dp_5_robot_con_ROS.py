@@ -94,7 +94,7 @@ class MoveItInterface:
         joint_state = JointState()
         joint_state.position = list(data.position)
         trajectory_points.append(joint_state.position)
-        print("Trajectroy Points:", trajectory_points)
+        print("Trajectory Points:", trajectory_points)
 
         return self.joint_state.position
 
