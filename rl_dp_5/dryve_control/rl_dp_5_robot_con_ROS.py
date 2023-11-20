@@ -1,7 +1,7 @@
 # Created by Laugesen, Nichlas O.; Dam, Elias Thomassen.
 # built from "Manual/Operating Manual dryve D1 EN V3.0.1.pdf"
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import JointState
 import socket
@@ -73,11 +73,13 @@ class MoveItInterface:
 
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
         self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+        print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
         self.position_history = []
         
 
         # Subscriber to get joint states during trajectory planning from MoveIt
         rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
+        print('subscribing to the move_group joint states')
 
 
 
@@ -86,6 +88,8 @@ class MoveItInterface:
         joint_state.header.stamp = rospy.Time.now()
         joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+        
+        print('Printing joint state positional values:', joint_state.position)
 
         # Publish joint state to simulate the robot pose in MoveIt
         self.fake_controller_joint_states_pub.publish(joint_state)
