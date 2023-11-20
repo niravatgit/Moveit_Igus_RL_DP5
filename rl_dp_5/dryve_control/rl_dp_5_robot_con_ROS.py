@@ -93,11 +93,15 @@ class MoveItInterface:
         trajectory_points = []
         joint_state = JointState()
         joint_state.position = list(data.position)
+        trajectory_points.append(joint_state.position)
+        print("Trajectroy Points:", trajectory_points)
 
         return self.joint_state.position
 
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
+        for i in position_history:
+            self.send_position_to_robot(i)
         if len(self.position_history) >= threshold:
             recent_positions = self.position_history[-threshold:]
             return all(positions == current_values for positions in recent_positions)
@@ -107,20 +111,21 @@ class MoveItInterface:
         current_joint_position = self.joint_states_callback()
         for axis, position in enumerate(current_joint_position):
             self.robot.set_target_position(axis, position)
-            if self.check_repeated_values(data, 5):
+            if self.check_repeated_values(current_joint_position, 5):
                 rospy.loginfo("Robot is stationary.")
-                rospy.signal_shutdown("IGUS immobile.")
-            continue	
+                rospy.signal_shutdown("IGUS is immobile.")
+            continue
+        rospy.sleep(1)	
             
 
-    def execution_result_callback(self, data):
-        self.execution_result = data
+    # def execution_result_callback(self, data):
+    #     self.execution_result = data
 
-    def is_trajectory_started(self):
-        return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
+    # def is_trajectory_started(self):
+    #     return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
 
-    def is_trajectory_finished(self):
-        return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
+    # def is_trajectory_finished(self):
+    #     return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
 
 if __name__ == "__main__":
     print('Initialized an object for the robot')
@@ -133,11 +138,11 @@ if __name__ == "__main__":
             print('Publishing the positional data from the robot')
             move_it_interface.publish_current_positions()
 
-            if move_it_interface.is_trajectory_started():
-                print("Trajectory is started!")
+            # if move_it_interface.is_trajectory_started():
+            #     print("Trajectory is started!")
 
-            if move_it_interface.is_trajectory_finished():
-                print("Trajectory is finished!")
+            # if move_it_interface.is_trajectory_finished():
+            #     print("Trajectory is finished!")
 
             rospy.sleep(1)
     except rospy.ROSInterruptException:
