@@ -69,9 +69,7 @@ class MoveItInterface:
         rospy.init_node('joint_states_subscriber', anonymous=True)
 
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
-        self.fake_controller_joint_states_pub = rospy.Publisher(
-            '/move_group/fake_controller_joint_states', JointState, queue_size=10
-        )
+        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
         self.position_history = []
 
@@ -118,7 +116,7 @@ class MoveItInterface:
     def send_position_to_robot(self, data):
         for axis, position in enumerate(data):
             self.robot.set_target_position(axis, position)
-            
+
     def execution_result_callback(self, data):
         self.execution_result = data
 
