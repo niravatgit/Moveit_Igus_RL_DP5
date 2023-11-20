@@ -74,21 +74,17 @@ class MoveItInterface:
         self.position_history = []
 
         # Subscriber to get joint states during trajectory planning from MoveIt
-        sub = rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
+        rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
         print('Subscribing to the move_group joint states')
 
         # Subscriber to monitor the execution result of planned trajectories
         rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
 
     def joint_states_callback(self, data):
-        trajectory_points = []
         joint_state = JointState()
         joint_state.position = list(data.position)
-        trajectory_points.append(joint_state.position)
+        self.position_history.append(joint_state.position)
         print("Trajectory Points:", trajectory_points)
-
-        return trajectory_points
-
 
     def publish_current_positions(self):
         joint_state = JointState()
@@ -97,11 +93,13 @@ class MoveItInterface:
         joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
         #joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
         print('Sending joint state positional values:',joint_state.position)
-        self.send_position_to_robot(joint_state.position)
+        self.send_position_to_robot(self.position_history)
 
-    def send_position_to_robot(self, current_joint_position):
-        for axis, position in enumerate(current_joint_position):
-            self.robot.set_target_position(axis, position)
+    def send_position_to_robot(self, trajectory_points):
+        for current_joint_position in trajectory_points:
+            for axis, position in enumerate(current_joint_position):
+                self.robot.set_target_position(axis, position)
+                rospy.sleep(1)
             if self.check_repeated_values(current_joint_position, 5):
                 rospy.loginfo("Robot is stationary.")
                 rospy.signal_shutdown("IGUS is immobile.")
