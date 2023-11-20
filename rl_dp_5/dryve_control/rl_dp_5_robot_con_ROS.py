@@ -4,9 +4,6 @@
 #!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import JointState
-import socket
-import time
-import struct
 import dryve_D1 as dryve
 import numpy as np
 
@@ -121,10 +118,13 @@ class MoveItInterface:
         return False
 if __name__ == "__main__":
     robot = Rl_DP_5()
+    print('Initialized an object for the robot')
     move_it_interface = MoveItInterface(robot)
+    print('Initialized an object for Moveit interface')
 
     try:
         while not rospy.is_shutdown():
+            print('publishing the positional data from the robot')
             move_it_interface.publish_current_positions()
             rospy.sleep(1)
     except rospy.ROSInterruptException:
