@@ -94,19 +94,7 @@ class MoveItInterface:
         joint_state = JointState()
         joint_state.position = list(data.position)
 
-        # Publish joint state
-        # self.joint_states_pub.publish(joint_state)
-
-        # Check for repeated values
-        if self.check_repeated_values(joint_state.position, 20):
-            rospy.loginfo("Trajectory planned after 20 repeated positions.")
-            trajectory_points.append(joint_state.position)
-            rospy.signal_shutdown("Trajectory planned.")
-
-        print(trajectory_points)
-
-        return joint_state.position
-
+        return self.joint_state.position
 
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
@@ -115,18 +103,16 @@ class MoveItInterface:
             return all(positions == current_values for positions in recent_positions)
         return False
 
-    def send_position_to_robot(self, data):
-        for axis, position in enumerate(data):
+    def send_position_to_robot(self):
+        current_joint_position = self.joint_states_callback()
+        for axis, position in enumerate(current_joint_position):
             self.robot.set_target_position(axis, position)
-<<<<<<< HEAD
             if self.check_repeated_values(data, 5):
                 rospy.loginfo("Robot is stationary.")
                 rospy.signal_shutdown("IGUS immobile.")
             continue	
             
-=======
 
->>>>>>> 0a81eb426a62923a792c9b58daf826f9440e7e7f
     def execution_result_callback(self, data):
         self.execution_result = data
 
