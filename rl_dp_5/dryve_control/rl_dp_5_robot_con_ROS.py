@@ -10,6 +10,7 @@ import struct
 import dryve_D1 as dryve
 import numpy as np
 
+
 speed=5
 accel=100
 homespeed=5
@@ -67,15 +68,18 @@ class MoveItInterface:
 #2. Published to fake_joint_controller to simulate the robot pose in Moveit based on current postiison of the real robot
 
         self.robot = robot
+        print('Created dryve interfaces')
         rospy.init_node('joint_states_subscriber', anonymous=True)
-
-        # Subscriber to get joint states during trajectory planning from MoveIt
-        rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
 
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
         self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         self.position_history = []
         
+
+        # Subscriber to get joint states during trajectory planning from MoveIt
+        rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
+
+
 
     def publish_current_positions(self):
         joint_state = JointState()
