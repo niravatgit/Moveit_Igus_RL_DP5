@@ -87,7 +87,8 @@ class MoveItInterface:
         joint_state.header.stamp = rospy.Time.now()
         joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
-        print('Sending joint state positional values')
+        #joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
+        print('Sending joint state positional values:',joint_state.position)
         self.send_position_to_robot(joint_state.position)
 
     def joint_states_callback(self, data):
@@ -108,6 +109,7 @@ class MoveItInterface:
 
         return joint_state.position
 
+
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
         if len(self.position_history) >= threshold:
@@ -118,6 +120,10 @@ class MoveItInterface:
     def send_position_to_robot(self, data):
         for axis, position in enumerate(data):
             self.robot.set_target_position(axis, position)
+            if self.check_repeated_values(data, 5):
+                rospy.loginfo("Robot is stationary.")
+                rospy.signal_shutdown("IGUS immobile.")
+            continue	
             
     def execution_result_callback(self, data):
         self.execution_result = data
