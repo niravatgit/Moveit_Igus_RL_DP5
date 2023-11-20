@@ -100,15 +100,14 @@ class MoveItInterface:
 
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
-        for i in position_history:
-            self.send_position_to_robot(i)
+        #for i in position_history:
+            #self.send_position_to_robot(i)
         if len(self.position_history) >= threshold:
             recent_positions = self.position_history[-threshold:]
             return all(positions == current_values for positions in recent_positions)
         return False
 
-    def send_position_to_robot(self):
-        current_joint_position = self.joint_states_callback()
+    def send_position_to_robot(self, current_joint_position):
         for axis, position in enumerate(current_joint_position):
             self.robot.set_target_position(axis, position)
             if self.check_repeated_values(current_joint_position, 5):
@@ -118,8 +117,8 @@ class MoveItInterface:
         rospy.sleep(1)	
             
 
-    # def execution_result_callback(self, data):
-    #     self.execution_result = data
+    def execution_result_callback(self, data):
+        self.execution_result = data
 
     # def is_trajectory_started(self):
     #     return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
