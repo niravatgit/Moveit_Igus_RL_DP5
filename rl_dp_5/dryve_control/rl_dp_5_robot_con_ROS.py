@@ -83,30 +83,30 @@ class MoveItInterface:
     def joint_states_callback(self, data):
         joint_state = JointState()
         joint_state.position = list(data.position)
-        self.position_history.append(joint_state.position)
-        print("Trajectory Points:", trajectory_points)
+        #self.position_history.append(joint_state.position)
+        #print("Trajectory Points:", trajectory_points)
 
     def publish_current_positions(self):
-        joint_state = JointState()
-        joint_state.header.stamp = rospy.Time.now()
-        joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+        self.joint_state = JointState()
+        self.joint_state.header.stamp = rospy.Time.now()
+        self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+        self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
         #joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
-        print('Sending joint state positional values:',joint_state.position)
-        self.send_position_to_robot(self.position_history)
+        print('Sending joint state positional values:',self.joint_state.position)
+        #self.position_history.append(list(joint_state.position))
+        #self.jsp = np.rad2deg(self.joint_state.position)
+        self.send_position_to_robot(self.joint_state.position)
 
-    def send_position_to_robot(self, trajectory_points):
-        for current_joint_position in trajectory_points:
-            for axis, position in enumerate(current_joint_position):
-                self.robot.set_target_position(axis, position)
-                rospy.sleep(1)
+    def send_position_to_robot(self, current_joint_position):
+        for axis, position in enumerate(current_joint_position):
+            self.robot.set_target_position(axis, position)
+            rospy.sleep(1)
             if self.check_repeated_values(current_joint_position, 5):
                 rospy.loginfo("Robot is stationary.")
                 rospy.signal_shutdown("IGUS is immobile.")
             continue
         rospy.sleep(1)	
         
-        return self.joint_state.position
 
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
