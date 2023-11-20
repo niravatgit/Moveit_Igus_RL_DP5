@@ -6,6 +6,7 @@ import rospy
 from sensor_msgs.msg import JointState
 import dryve_D1 as dryve
 import numpy as np
+from trajectory_msgs.msg import JointTrajectory as jt
 
 
 speed=5
@@ -56,9 +57,8 @@ class Rl_DP_5:
             axis.homing(homespeed, homeaccel)
 
     def get_current_position(self, axis):
-        print(self.axis_controller[axis].getPosition())
         return self.axis_controller[axis].getPosition()
-
+    
 class MoveItInterface:
     def __init__(self, robot):
 #here we should have two things
@@ -89,10 +89,6 @@ class MoveItInterface:
         
         print('Printing joint state positional values:', joint_state.position)
 
-        # Publish joint state to simulate the robot pose in MoveIt
-        self.fake_controller_joint_states_pub.publish(joint_state)
-
-
     def joint_states_callback(self, data):
         trajectory_points = []
         joint_state = JointState()
@@ -101,7 +97,7 @@ class MoveItInterface:
         joint_state.position = data.position
 
         # Publish joint state
-        self.joint_states_pub.publish(joint_state)
+        #self.joint_states_pub.publish(joint_state)
 
         # Check for repeated values
         if self.check_repeated_values(joint_state.position, 20):
@@ -111,12 +107,15 @@ class MoveItInterface:
             
         print(trajectory_points)
 
+        return list(joint_state.position)
+
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
         if len(self.position_history) >= threshold:
             recent_positions = self.position_history[-threshold:]
             return all(positions == current_values for positions in recent_positions)
         return False
+    
 if __name__ == "__main__":
     print('Initialized an object for the robot')
     robot = Rl_DP_5()
