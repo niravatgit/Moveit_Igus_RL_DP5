@@ -56,6 +56,7 @@ class Rl_DP_5:
             axis.homing(homespeed, homeaccel)
 
     def get_current_position(self, axis):
+        print(self.axis_controller[axis].getPosition())
         return self.axis_controller[axis].getPosition()
 
 class MoveItInterface:
