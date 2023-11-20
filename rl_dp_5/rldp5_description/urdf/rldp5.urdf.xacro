@@ -57,7 +57,7 @@
         <parent link="link_1" />
         <child link="link_2" />
         <origin rpy="0.0 0.0 0.0" xyz="0.0 0 0.145" />
-        <axis xyz="0 1 0" />
+        <axis xyz="0 -1 0" />
         <limit effort="330.0" lower="-1.74533" upper="0.872665" velocity="2.16" />
     </joint>
     <link name="link_2">
@@ -83,8 +83,8 @@
         <parent link="link_2" />
         <child link="link_5" />
         <origin rpy="0.0 0 0.0" xyz="0.0 0.0 0.350" />
-        <axis xyz="0 1 0" />
-        <limit effort="330.0" lower="-2.007129" upper="2.00713" velocity="2.16" />
+        <axis xyz="0 -1 0" />
+        <limit effort="330.0" lower="-2.00713" upper="2.00713" velocity="2.16" />
     </joint>
     <link name="link_5">
         <visual>
@@ -109,7 +109,7 @@
         <parent link="link_5" />
         <child link="link_6" />
         <origin rpy="0.0 0.0 0.0" xyz="0.0 0 0.270" />
-        <axis xyz="0 1 0" />
+        <axis xyz="0 -1 0" />
         <limit effort="330.0" lower="-1.7453292519943295" upper="1.7453292519943295" velocity="2.16" />
     </joint>
     <link name="link_6">
