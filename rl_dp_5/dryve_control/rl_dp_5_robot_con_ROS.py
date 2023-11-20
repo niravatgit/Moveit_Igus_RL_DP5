@@ -13,6 +13,22 @@ homespeed = 5
 homeaccel = 100
 
 
+#following are the fucntions that we want to expose through ROS
+#workspace will be /rl_dp_5
+#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
+#2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
+#3. service: /home : this will call homing from dryve_D1.py -> check the arguments
+#4. subsriber: /cmd/set_joint_position : this will set desired joint position by calling profile_pos_mode -> check arguments
+#5. 
+#
+#
+#
+#
+#
+#
+#start ROS Node code here
+
+
 class Rl_DP_5:
     def __init__(self):
         # Initialize your 5 D1 axes here
@@ -43,15 +59,17 @@ class Rl_DP_5:
 
 
 class MoveItInterface:
+#here we should have two things
+#1. Subsriber to joint_states from moveit to getjoint space trajectory to plannned pose
+#2. Published to fake_joint_controller to simulate the robot pose in Moveit based on current postiison of the real robot
+
     def __init__(self, robot):
         self.robot = robot
         self.execution_result = None
         rospy.init_node('joint_states_subscriber', anonymous=True)
 
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
-        self.fake_controller_joint_states_pub = rospy.Publisher(
-            '/move_group/fake_controller_joint_states', JointState, queue_size=10
-        )
+        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
         self.position_history = []
 
@@ -67,7 +85,7 @@ class MoveItInterface:
         joint_state.header.stamp = rospy.Time.now()
         joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
-        print('Sending joint state positional values')
+        print('Sending joint state positional values:', joint_state.position)
         self.send_position_to_robot(joint_state.position)
 
     def joint_states_callback(self, data):
@@ -88,17 +106,6 @@ class MoveItInterface:
 
         return joint_state.position
 
-    def execution_result_callback(self, data):
-        self.execution_result = data
-
-    def is_trajectory_started(self):
-        return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
-
-    def is_trajectory_finished(self):
-        return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
-
-
-
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
         if len(self.position_history) >= threshold:
@@ -109,7 +116,21 @@ class MoveItInterface:
     def send_position_to_robot(self, data):
         for axis, position in enumerate(data):
             self.robot.set_target_position(axis, position)
+            if self.check_repeated_values(data, 20):
+                rospy.loginfo("Robot is stationary.")
+                rospy.signal_shutdown("IGUS immobile.")
+            break
 
+
+
+    def execution_result_callback(self, data):
+        self.execution_result = data
+
+    def is_trajectory_started(self):
+        return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
+
+    def is_trajectory_finished(self):
+        return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
 
 if __name__ == "__main__":
     print('Initialized an object for the robot')
