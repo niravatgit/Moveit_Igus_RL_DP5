@@ -108,9 +108,6 @@ class MoveItInterface:
 
         return joint_state.position
 
-    def execution_result_callback(self, data):
-        self.execution_result = data
-
     def check_repeated_values(self, current_values, threshold):
         self.position_history.append(current_values)
         if len(self.position_history) >= threshold:
@@ -121,7 +118,15 @@ class MoveItInterface:
     def send_position_to_robot(self, data):
         for axis, position in enumerate(data):
             self.robot.set_target_position(axis, position)
+            
+    def execution_result_callback(self, data):
+        self.execution_result = data
 
+    def is_trajectory_started(self):
+        return self.execution_result is not None and self.execution_result.status.status == 1  # Check if status is ACTIVE
+
+    def is_trajectory_finished(self):
+        return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
 
 if __name__ == "__main__":
     print('Initialized an object for the robot')
