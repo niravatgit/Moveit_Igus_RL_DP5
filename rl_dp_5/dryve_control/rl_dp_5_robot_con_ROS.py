@@ -74,7 +74,7 @@ class MoveItInterface:
         self.position_history = []
 
         # Subscriber to get joint states during trajectory planning from MoveIt
-        rospy.Subscriber('/move_group/joint_states', JointState, self.joint_states_callback)
+        rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
         print('Subscribing to the move_group joint states')
 
         # Subscriber to monitor the execution result of planned trajectories
@@ -84,18 +84,16 @@ class MoveItInterface:
         joint_state = JointState()
         joint_state.position = list(data.position)
         #self.position_history.append(joint_state.position)
-        #print("Trajectory Points:", trajectory_points)
+        print("Trajectory Points:", joint_state.position)
+#        self.send_position_to_robot(self.joint_state.position)
 
     def publish_current_positions(self):
+        #print('Publishing the positional data from the robot')
         self.joint_state = JointState()
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
-        #joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
-        print('Sending joint state positional values:',self.joint_state.position)
-        #self.position_history.append(list(joint_state.position))
-        #self.jsp = np.rad2deg(self.joint_state.position)
-        self.send_position_to_robot(self.joint_state.position)
+        self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def send_position_to_robot(self, current_joint_position):
         for axis, position in enumerate(current_joint_position):
@@ -134,7 +132,7 @@ if __name__ == "__main__":
 
     try:
         while not rospy.is_shutdown():
-            print('Publishing the positional data from the robot')
+
             move_it_interface.publish_current_positions()
 
             # if move_it_interface.is_trajectory_started():
@@ -143,6 +141,6 @@ if __name__ == "__main__":
             # if move_it_interface.is_trajectory_finished():
             #     print("Trajectory is finished!")
 
-            rospy.sleep(1)
+            rospy.sleep(0.01)
     except rospy.ROSInterruptException:
         pass
