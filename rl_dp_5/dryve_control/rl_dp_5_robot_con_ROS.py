@@ -71,16 +71,17 @@ class MoveItInterface:
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
         self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
-        self.position_history = []
+        #self.position_history = []
 
         # Subscriber to get joint states during trajectory planning from MoveIt
-        rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
+        rospy.Subscriber('/joint_states', JointState, self.callback_fn)
         print('Subscribing to the move_group joint states')
 
         # Subscriber to monitor the execution result of planned trajectories
         rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
 
-    def joint_states_callback(self, data):
+
+    def callback_fn(self, data):
         joint_state = JointState()
         joint_state.position = list(data.position)
         #self.position_history.append(joint_state.position)
