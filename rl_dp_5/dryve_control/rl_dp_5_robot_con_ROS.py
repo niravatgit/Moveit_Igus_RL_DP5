@@ -82,23 +82,24 @@ class MoveItInterface:
         rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
 
     def callback_fn(self, data):
-        joint_state_position = list(data.position)
-        for i in range(5):
-        	print("setting robot axis_", i,"as :", joint_state_position[i])
-        	self.robot.set_target_position(i, joint_state_position[i]) 
-            
-        
+        self.joint_state_position = list(data.position)
+        self.send_position_to_robot(self.joint_state_position)
+        #for i in range(5):
+        	#print("setting robot axis_", i,"as :", joint_state_position[i])
+        	#self.robot.set_target_position(i, joint_state_position[i]) 
         #self.position_history.append(joint_state.position)
         #print("Trajectory Points:", joint_state.position)
         # self.send_position_to_robot(self.joint_state.position)
 
     def publish_current_positions(self):
-        #print('Publishing the positional data from the robot')
+        print('Publishing the positional data from the robot')
         self.joint_state = JointState()
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+        self.joint_state.position = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
+        print("got the position", self.joint_state)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
+        print("pub the position")
         
         self.listener()
 
