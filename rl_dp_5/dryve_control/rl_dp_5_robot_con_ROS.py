@@ -79,7 +79,6 @@ class MoveItInterface:
         # Subscriber to monitor the execution result of planned trajectories
         #rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
         
-        return joint_state_position
     
 
     def callback_fn(self, data):
@@ -90,7 +89,7 @@ class MoveItInterface:
         print("Trajectory Points:", x)
         self.send_position_to_robot(x_list)
 
-    def publish_positions_(self):
+    def publish_positions(self):
 
         #print('Publishing the positional data from the robot')
         self.joint_state = JointState()
