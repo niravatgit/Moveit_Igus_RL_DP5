@@ -7,9 +7,6 @@ from moveit_msgs.msg import ExecuteTrajectoryActionResult
 import dryve_D1 as dryve
 import numpy as np
 
-from std_msgs.msg import Float32
-import math
-
 speed = 5
 accel = 100
 homespeed = 5
@@ -69,37 +66,34 @@ class MoveItInterface:
     def __init__(self, robot):
         self.robot = robot
         self.execution_result = None
-        
         rospy.init_node('joint_states_subscriber', anonymous=True)
 
-        # Publisher to simulate the robot pose in Rviz based on the current position of the real robot
+        # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
         self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
-
-        # Subscriber to monitor the execution result of planned trajectories
-        #rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
-        
-    
-
-    def callback_fn(self, data):
-        #x = Float32()
-        #for i in range(5):
-            #data.append(data.position[i])
-        x_list = list(data.position)
-        print("Trajectory Points:", x_list)
-        self.send_position_to_robot(x_list)
-
-    def publish_positions(self):
-
-        #print('Publishing the positional data from the robot')
-        self.joint_state = JointState()
-        #self.joint_state.position = self.robot.get_current_position()
-        self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
-        self.fake_controller_joint_states_pub.publish(self.joint_state)
+        self.position_history = []
 
         # Subscriber to get joint states during trajectory planning from MoveIt
+        rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
         print('Subscribing to the move_group joint states')
-        rospy.Subscriber('/joint_states', JointState, self.callback_fn, queue_size=10)
+
+        # Subscriber to monitor the execution result of planned trajectories
+        rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
+
+    def joint_states_callback(self, data):
+        joint_state = JointState()
+        joint_state.position = list(data.position)
+        #self.position_history.append(joint_state.position)
+        print("Trajectory Points:", joint_state.position)
+#        self.send_position_to_robot(self.joint_state.position)
+
+    def publish_current_positions(self):
+        #print('Publishing the positional data from the robot')
+        self.joint_state = JointState()
+        self.joint_state.header.stamp = rospy.Time.now()
+        self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+        self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+        self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def send_position_to_robot(self, current_joint_position):
         for axis, position in enumerate(current_joint_position):
@@ -107,7 +101,7 @@ class MoveItInterface:
             rospy.sleep(1)
             if self.check_repeated_values(current_joint_position, 5):
                 rospy.loginfo("Robot is stationary.")
-                #rospy.signal_shutdown("IGUS is immobile.")
+                rospy.signal_shutdown("IGUS is immobile.")
             continue
         rospy.sleep(1)	
         
@@ -139,7 +133,7 @@ if __name__ == "__main__":
     try:
         while not rospy.is_shutdown():
 
-            move_it_interface.publish_positions()
+            move_it_interface.publish_current_positions()
 
             # if move_it_interface.is_trajectory_started():
             #     print("Trajectory is started!")
