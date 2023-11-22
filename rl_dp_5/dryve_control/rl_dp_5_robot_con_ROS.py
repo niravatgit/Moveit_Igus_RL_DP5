@@ -67,41 +67,48 @@ class MoveItInterface:
         self.robot = robot
         self.execution_result = None
         rospy.init_node('joint_states_subscriber', anonymous=True)
-
+        
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
-        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=1)
         print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
-        self.position_history = []
-
-    def listener(self):
-        # Subscriber to get joint states during trajectory planning from MoveIt
-        rospy.Subscriber('/joint_states', JointState, self.callback_fn)
-        print('Subscribing to the move_group joint states')
-
-        # Subscriber to monitor the execution result of planned trajectories
-        rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
-
-    def callback_fn(self, data):
-        self.joint_state_position = list(data.position)
-        self.send_position_to_robot(self.joint_state_position)
-        #for i in range(5):
-        	#print("setting robot axis_", i,"as :", joint_state_position[i])
-        	#self.robot.set_target_position(i, joint_state_position[i]) 
-        #self.position_history.append(joint_state.position)
-        #print("Trajectory Points:", joint_state.position)
-        # self.send_position_to_robot(self.joint_state.position)
-
-    def publish_current_positions(self):
-        print('Publishing the positional data from the robot')
+        
         self.joint_state = JointState()
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         self.joint_state.position = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
-        print("got the position", self.joint_state)
-        self.fake_controller_joint_states_pub.publish(self.joint_state)
-        print("pub the position")
         
-        self.listener()
+        self.fake_controller_joint_states_pub.publish(self.joint_state)
+
+
+    def listener(self):
+        # Subscriber to get joint states during trajectory planning from MoveIt
+        #print('Subscribing to the move_group joint states')
+        rospy.Subscriber('/joint_states', JointState, self.callback_fn, queue_size=1)
+        
+
+        # Subscriber to monitor the execution result of planned trajectories
+        #rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
+
+    def callback_fn(self, data):
+        self.joint_state_position = list(data.position)
+        print(self.joint_state_position)
+        #self.send_position_to_robot(self.joint_state_position)
+        for i in range(5):
+        	print("setting robot axis_", i,"as :", self.joint_state_position[i])
+        	self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
+        	
+        #self.position_history.append(joint_state.position)
+        #print("Trajectory Points:", joint_state.position)
+        # self.send_position_to_robot(self.joint_state.position)
+
+#    def publish_current_positions(self):
+ #       print('Publishing the positional data from the robot')
+
+#        print("got the position", self.joint_state)
+        
+#        print("pub the position")
+        
+#        self.listener()
 
 
     def send_position_to_robot(self, current_joint_position):
@@ -142,7 +149,7 @@ if __name__ == "__main__":
     try:
         while not rospy.is_shutdown():
 
-            move_it_interface.publish_current_positions()
+            move_it_interface.listener()
 
             # if move_it_interface.is_trajectory_started():
             #     print("Trajectory is started!")
