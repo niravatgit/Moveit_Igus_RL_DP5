@@ -83,8 +83,8 @@ class MoveItInterface:
 
     def callback_fn(self, data):
         joint_state_position = list(data.position)
-        for i in range(5):
-            self.robot.set_target_position(i, joint_state_position[i])
+        print("position after call back:", joint_state_position)
+        self.fake_controller_joint_states_pub.publish(joint_state_position)
         
         #self.position_history.append(joint_state.position)
         #print("Trajectory Points:", joint_state.position)
