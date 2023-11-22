@@ -73,19 +73,22 @@ class MoveItInterface:
         print('Publishing values to fake controller joint states:', self.fake_controller_joint_states_pub)
         self.position_history = []
 
+    def listener(self):
         # Subscriber to get joint states during trajectory planning from MoveIt
-        rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
+        rospy.Subscriber('/joint_states', JointState, self.callback_fn)
         print('Subscribing to the move_group joint states')
 
         # Subscriber to monitor the execution result of planned trajectories
         rospy.Subscriber('/execute_trajectory/result', ExecuteTrajectoryActionResult, self.execution_result_callback)
 
-    def joint_states_callback(self, data):
-        joint_state = JointState()
-        joint_state.position = list(data.position)
+    def callback_fn(self, data):
+        joint_state_position = list(data.position)
+        for i in range(5):
+            self.robot.set_target_position(i, joint_state_position[i])
+        
         #self.position_history.append(joint_state.position)
-        print("Trajectory Points:", joint_state.position)
-#        self.send_position_to_robot(self.joint_state.position)
+        #print("Trajectory Points:", joint_state.position)
+        # self.send_position_to_robot(self.joint_state.position)
 
     def publish_current_positions(self):
         #print('Publishing the positional data from the robot')
@@ -94,6 +97,8 @@ class MoveItInterface:
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
         self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
         self.fake_controller_joint_states_pub.publish(self.joint_state)
+        
+        self.listener()
 
     def send_position_to_robot(self, current_joint_position):
         for axis, position in enumerate(current_joint_position):
