@@ -82,17 +82,18 @@ class MoveItInterface:
     
 
     def callback_fn(self, data):
-        x = Float32()
-        for i in range(5):
-            x.data.append(data.position[i])
-        x_list = list(x)
-        print("Trajectory Points:", x)
+        #x = Float32()
+        #for i in range(5):
+            #data.append(data.position[i])
+        x_list = list(data.position)
+        print("Trajectory Points:", x_list)
         self.send_position_to_robot(x_list)
 
     def publish_positions(self):
 
         #print('Publishing the positional data from the robot')
         self.joint_state = JointState()
+        #self.joint_state.position = self.robot.get_current_position()
         self.joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
