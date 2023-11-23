@@ -5,6 +5,8 @@ from sensor_msgs.msg import JointState
 import dryve_D1 as dryve
 import numpy as np
 import threading
+import actionlib
+from rldp5_action import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
 
 speed = 5
 accel = 100
@@ -42,10 +44,8 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
 
-class RL_DP_5_ROS:
-    def __init__(self):
-        print('Hello ROS')
-        #following are the fucntions that we want to expose through ROS
+#-----------------------------------------------------------------------------------------------------------------------------------
+#following are the fucntions that we want to expose through ROS
 	#workspace will be /rl_dp_5
 	#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
 	#2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
@@ -63,6 +63,21 @@ class RL_DP_5_ROS:
         #Action commands: 1: home <iunt>, home_all, setmode <int>, set_swon, set_open, set_shtdown
 	#publishers: status <can iclude a lot of interegers we will discuss later>
 	#subsribers: 
+#-----------------------------------------------------------------------------------------------------------------------------------
+class RL_DP_5_ROS:
+    def __init__(self, robot):
+
+        self.robot = robot
+        rospy.init_node('ros_interface_node')
+        self.action_server = actionlib.SimpleActionServer('rldp5_', rldp5_robotAction, self.execute_command, auto_start=False)
+        self.action_server.start()
+
+    def execute_command(self, command):
+        if command.command == 'home_all':
+            self.robot.home_all()
+
+
+
 
 class MoveItInterface:
 
@@ -99,6 +114,7 @@ if __name__ == "__main__":
     robot = Rl_DP_5()
     print('Initialized an object for Moveit interface')
     move_it_interface = MoveItInterface(robot)
+    rldp5_ros_interface = RL_DP_5_ROS(robot)
 
     try:
         while not rospy.is_shutdown():
