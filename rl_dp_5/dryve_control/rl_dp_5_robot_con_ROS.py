@@ -88,11 +88,16 @@ class MoveItInterface:
         self.joint_state_position = list(data.position)
         print(self.joint_state_position)
 
-        self.thread_lock = threading.Lock()
+        self.thread_lock = threading.Lock() 
+        self.threads = []
         with self.thread_lock:
             for i in range(5):
-                self.thread = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])))
-                self.thread.start()
+                self.t = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])))
+                self.threads.append(self.t)
+                self.t.start()
+                
+                for self.t in self.threads:
+                    self.t.join()
 
 if __name__ == "__main__":
     print('Initialized an object for the robot')
