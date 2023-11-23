@@ -6,6 +6,7 @@ from trajectory_msgs.msg import JointTrajectory
 from moveit_msgs.msg import ExecuteTrajectoryActionResult
 import dryve_D1 as dryve
 import numpy as np
+import threading
 
 speed = 5
 accel = 100
@@ -99,10 +100,12 @@ class MoveItInterface:
     def callback_fn(self, data):
         self.joint_state_position = list(data.position)
         print(self.joint_state_position)
-        #self.send_position_to_robot(self.joint_state_position)
         for i in range(5):
-            print("setting robot axis_", i,"as :", self.joint_state_position[i])
-            self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
+            thread = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])))
+            thread.start()
+        # for i in range(5):
+        #     print("setting robot axis_", i,"as :", self.joint_state_position[i])
+        #     self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
         	
         #self.position_history.append(joint_state.position)
         #print("Trajectory Points:", joint_state.position)
