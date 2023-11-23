@@ -101,8 +101,8 @@ class MoveItInterface:
         print(self.joint_state_position)
         #self.send_position_to_robot(self.joint_state_position)
         for i in range(5):
-        	print("setting robot axis_", i,"as :", self.joint_state_position[i])
-        	self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
+            print("setting robot axis_", i,"as :", self.joint_state_position[i])
+            self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
         	
         #self.position_history.append(joint_state.position)
         #print("Trajectory Points:", joint_state.position)
