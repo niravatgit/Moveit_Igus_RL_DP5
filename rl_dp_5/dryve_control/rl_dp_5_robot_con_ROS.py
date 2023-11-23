@@ -13,21 +13,7 @@ homespeed = 5
 homeaccel = 100
 
 
-#following are the fucntions that we want to expose through ROS
-#workspace will be /rl_dp_5
-#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
-#2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
-#3. service: /home : this will call homing from dryve_D1.py -> check the arguments
-#4. subsriber: /cmd/set_joint_position : this will set desired joint position by calling profile_pos_mode -> check arguments
-#5. 
 #
-#
-#
-#
-#
-#
-#start ROS Node code here
-
 
 class Rl_DP_5:
     def __init__(self):
@@ -57,6 +43,27 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
 
+class RL_DP_5_ROS:
+    def __init__(self):
+        print('Hello ROS')
+        #following are the fucntions that we want to expose through ROS
+	#workspace will be /rl_dp_5
+	#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
+	#2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
+	#3. service: /home : this will call homing from dryve_D1.py -> check the arguments
+	#4. subsriber: /cmd/set_joint_position : this will set desired joint position by calling profile_pos_mode -> check arguments
+	#5. 
+	#
+	#
+	#
+	#
+	#
+	#
+	#start ROS Node code here
+	#create all poublishedrs, subsribers and action commands of ROS baesd interface
+        #Action commands: 1: home <iunt>, home_all, setmode <int>, set_swon, set_open, set_shtdown
+	#publishers: status <can iclude a lot of interegers we will discuss later>
+	#subsribers: 
 
 class MoveItInterface:
 #here we should have two things
