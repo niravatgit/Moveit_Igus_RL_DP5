@@ -100,9 +100,16 @@ class MoveItInterface:
     def callback_fn(self, data):
         self.joint_state_position = list(data.position)
         print(self.joint_state_position)
+        threads = []
         for i in range(5):
             thread = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])))
-            thread.start()
+            threads.append(thread)
+
+            for thread in threads:
+                thread.start()
+
+            for thread in thread:
+                thread.join()
         # for i in range(5):
         #     print("setting robot axis_", i,"as :", self.joint_state_position[i])
         #     self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
