@@ -110,6 +110,16 @@ class MoveItInterface:
 
             for thread in threads:
                 thread.join()
+                
+       # Traceback (most recent call last):
+#  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+#    cb(msg)
+#  File "rl_dp_5_robot_con_ROS.py", line 109, in callback_fn
+#    thread.start()
+#  File "/usr/lib/python3.8/threading.py", line 848, in start
+#    raise RuntimeError("threads can only be started once")
+#RuntimeError: threads can only be started once
+
         # for i in range(5):
         #     print("setting robot axis_", i,"as :", self.joint_state_position[i])
         #     self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) 
