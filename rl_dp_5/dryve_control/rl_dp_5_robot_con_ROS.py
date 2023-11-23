@@ -108,7 +108,7 @@ class MoveItInterface:
             for thread in threads:
                 thread.start()
 
-            for thread in thread:
+            for thread in threads:
                 thread.join()
         # for i in range(5):
         #     print("setting robot axis_", i,"as :", self.joint_state_position[i])
