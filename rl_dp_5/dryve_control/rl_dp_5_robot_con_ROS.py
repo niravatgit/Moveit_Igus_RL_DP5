@@ -7,6 +7,8 @@ import numpy as np
 import threading
 import actionlib
 from rldp5_action import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
+from std_srvs.srv import SetBool, SetBoolResponse
+
 
 speed = 5
 accel = 100
@@ -64,21 +66,11 @@ class Rl_DP_5:
 	#publishers: status <can iclude a lot of interegers we will discuss later>
 	#subsribers: 
 #-----------------------------------------------------------------------------------------------------------------------------------
+
 class RL_DP_5_ROS:
     def __init__(self, robot):
-
-        self.robot = robot
-        rospy.init_node('ros_interface_node')
-        self.action_server = actionlib.SimpleActionServer('rldp5_', rldp5_robotAction, self.execute_command, auto_start=False)
-        self.action_server.start()
-
-    def execute_command(self, command):
-        if command.command == 'home_all':
-            self.robot.home_all()
-
-
-
-
+        print('RLDP5 ROS Interface')
+        
 class MoveItInterface:
 
     def __init__(self, robot):

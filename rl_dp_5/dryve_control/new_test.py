@@ -384,3 +384,53 @@ if __name__ == "__main__":
     except rospy.ROSInterruptException:
         pass
 
+-------------------------------------------------- 24-11-2023 ROS Actions ---------------------------------------
+import actionlib
+import rldp5_action.action 
+
+class RL_DP_5_ROS:
+
+    def __init__(self, robot):
+      
+        self.robot = robot
+            
+        # Define the action server
+        self.action_server = actionlib.SimpleActionServer('rldp5_action', 
+            rldp5_action.action.rldp5_robotAction, 
+            execute_cb=self.action_execute_callback, 
+            auto_start=False)
+        self.action_server.start()
+        
+        # Define the action client
+        self.action_client = actionlib.SimpleActionClient('rldp5_action', 
+            rldp5_action.action.rldp5_robotAction)
+        self.action_client.wait_for_server() 
+        
+        
+    def action_execute_callback(self, goal):
+        # Execute callbacks when goals are received
+        
+        if goal.command == "home_all":
+            self.robot.home_all()
+            self.action_server.set_succeeded()
+            
+        elif goal.command == "move_joint":
+            # Move joint
+            self.action_server.set_succeeded()
+            
+        # Other execute functions
+        
+        
+    def send_action_goal(self, command):
+        
+        # Create goal
+        goal = rldp5_action.action.rldp5_robotGoal()
+        goal.command = command 
+        
+        # Send goal
+        self.action_client.send_goal(goal)
+        
+        # Wait for result
+        self.action_client.wait_for_result()
+        
+        return self.action_client.get_result()
