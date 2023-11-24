@@ -90,7 +90,7 @@ class RL_DP_5_ROS:
             self._as.set_preempted()
             success = False
             
-        if self.goal == 'home_all':
+        if self.goal.command == 'home_all':
             self.robot.home_all()
             rospy.loginfo("got goal...")
 
@@ -101,7 +101,7 @@ class RL_DP_5_ROS:
             self._feedback.status = positions   
     	    #Your executeCallback did not set the goal to a terminal status.  This is a bug in your ActionServer implementation. Fix your code!  For now, the ActionServer will set this goal to aborted
             rospy.loginfo("publishing feedback for axis:")
-            self._as.publish_feedback(self._feedback.status)
+            self._as.publish_feedback(self._feedback)
             rospy.loginfo("published feedback for axis: ")   
             
         if success:
