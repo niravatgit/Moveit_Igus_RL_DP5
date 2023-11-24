@@ -71,6 +71,8 @@ class RL_DP_5_ROS:
         self.robot = robot
 
         self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start = False)
+        #AttributeError: 'RL_DP_5_ROS' object has no attribute '_action_name'
+
 
         # Start the action server.
         self._as.start()
