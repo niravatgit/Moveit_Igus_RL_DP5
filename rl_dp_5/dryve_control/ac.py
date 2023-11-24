@@ -15,10 +15,9 @@ def rldp5_robot_action_client():
     rospy.loginfo("Waiting for action server to come up...")
     client.wait_for_server()
 
-    command = input("")
-
     # Creates a goal to send to the action server.
-    goal = rldp5_robotGoal(command)
+    
+    goal = rldp5_robotGoal("home_all")
 
     # Sends the goal to the action server.
     client.send_goal(goal)
@@ -35,7 +34,7 @@ if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
-        rospy.init_node('rldp5_Robot_ac')
+        rospy.init_node('rldp5_Robot_ac.py')
         result = rldp5_robot_action_client()
         rospy.loginfo(result.result_message)
     except rospy.ROSInterruptException:

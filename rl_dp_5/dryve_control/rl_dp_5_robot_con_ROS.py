@@ -63,40 +63,41 @@ class Rl_DP_5:
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RL_DP_5_ROS:
-    
+
     _feedback = rldp5_robotFeedback()
     _result = rldp5_robotResult()
 
-    def __init__(self, robot):
+    def __init__(self, robot, name):
         self.robot = robot
 
+        self._action_name = name
         self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start = False)
-        #AttributeError: 'RL_DP_5_ROS' object has no attribute '_action_name'
 
-
-        # Start the action server.
+       # Start the action server.
         self._as.start()
         rospy.loginfo("Action server started...")
 
     def execute_cb(self, goal):
         self.goal = goal
+        success = True
 
         if self._as.is_preempt_requested():
             rospy.loginfo('%s: Preempted' % self._action_name)
             self._as.set_preempted()
             success = False
 
-        if success:
-            self._result.result_message = "Successfully completed counting."
-            rospy.loginfo('%s: Succeeded' % self._action_name)
-            self._as.set_succeeded(self._result)
-
-
         if self.goal == 'home_all':
             self.robot.home_all()
 
             self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
             self._as.publish_feedback(self._feedback)
+
+        if success:
+            self._result.success = self._feedback.status
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            self._as.set_succeeded(self._result)
+
+
       
 class MoveItInterface:
 
@@ -133,7 +134,10 @@ if __name__ == "__main__":
     robot = Rl_DP_5()
     print('Initialized an object for Moveit interface')
     move_it_interface = MoveItInterface(robot)
-    rldp5_ros_interface = RL_DP_5_ROS(robot)
+
+    rospy.init_node('ros_action_home_all')
+    print('Initialized an object for ROS Interface further implementing ROS Actions')
+    rldp5_ros_interface = RL_DP_5_ROS(robot, rospy.get_name())
 
     try:
         while not rospy.is_shutdown():
