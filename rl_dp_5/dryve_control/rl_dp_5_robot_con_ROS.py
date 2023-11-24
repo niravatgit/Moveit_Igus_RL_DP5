@@ -6,7 +6,7 @@ import dryve_D1 as dryve
 import numpy as np
 import threading
 import actionlib
-from rldp5_msgs import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
+from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
 
 speed = 5
 accel = 100

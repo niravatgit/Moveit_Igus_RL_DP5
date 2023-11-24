@@ -3,7 +3,7 @@ from __future__ import print_function
 import rospy
 import actionlib
 import sys
-from rldp5_msgs import rldp5_robotAction, rldp5_robotGoal
+from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 
 def rldp5_robot_action_client():
     # Creates the SimpleActionClient, passing the type of the action
