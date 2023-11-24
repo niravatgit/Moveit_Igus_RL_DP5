@@ -1,0 +1,10 @@
+# Goal
+uint32 home
+
+---
+# Result
+string success
+
+---
+# Feedback
+float64[] status

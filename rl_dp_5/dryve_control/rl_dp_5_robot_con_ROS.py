@@ -6,17 +6,12 @@ import dryve_D1 as dryve
 import numpy as np
 import threading
 import actionlib
-from rldp5_action import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
-from std_srvs.srv import SetBool, SetBoolResponse
-
+from rldp5_msgs import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
 
 speed = 5
 accel = 100
 homespeed = 5
 homeaccel = 100
-
-
-#
 
 class Rl_DP_5:
     def __init__(self):
@@ -68,8 +63,41 @@ class Rl_DP_5:
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RL_DP_5_ROS:
+    
+    _feedback = rldp5_robotFeedback()
+    _result = rldp5_robotResult()
+
     def __init__(self, robot):
-        print('RLDP5 ROS Interface')
+        self.robot = robot
+
+        self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start = False)
+
+        # Start the action server.
+        self._as.start()
+        rospy.loginfo("Action server started...")
+
+    def execute_cb(self, goal):
+        self.goal = goal
+
+        if self._as.is_preempt_requested():
+            rospy.loginfo('%s: Preempted' % self._action_name)
+            self._as.set_preempted()
+            success = False
+
+        if success:
+            self._result.result_message = "Successfully completed counting."
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            self._as.set_succeeded(self._result)
+
+
+        if self.goal == 'home_all':
+            self.robot.home_all()
+
+            for i in range(5):
+                self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
+                self._as.publish_feedback(self._feedback)
+
+
         
 class MoveItInterface:
 
@@ -98,7 +126,7 @@ class MoveItInterface:
         self.thread_lock = threading.Lock() 
         with self.thread_lock:
             for i in range(5):
-                self.t = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])))
+                self.t = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])), daemon=True)
                 self.t.start()
 
 if __name__ == "__main__":
