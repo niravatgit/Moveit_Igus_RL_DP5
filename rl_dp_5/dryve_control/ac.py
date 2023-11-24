@@ -8,7 +8,7 @@ from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 def rldp5_robot_action_client():
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
-    client = actionlib.SimpleActionClient('RLDP5 Robot Action', rldp5_robotAction)
+    client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
 
     # Waits until the action server has started up and started
     # listening for goals.

@@ -6,7 +6,7 @@ import dryve_D1 as dryve
 import numpy as np
 import threading
 import actionlib
-from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
+from rldp5_msgs.msg import  rldp5_robotAction, _rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
 
 speed = 5
 accel = 100
@@ -93,12 +93,9 @@ class RL_DP_5_ROS:
         if self.goal == 'home_all':
             self.robot.home_all()
 
-            for i in range(5):
-                self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
-                self._as.publish_feedback(self._feedback)
-
-
-        
+            self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
+            self._as.publish_feedback(self._feedback)
+      
 class MoveItInterface:
 
     def __init__(self, robot):
