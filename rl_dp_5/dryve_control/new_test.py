@@ -434,3 +434,5 @@ class RL_DP_5_ROS:
         self.action_client.wait_for_result()
         
         return self.action_client.get_result()
+    
+    -------------------------------------------------------------------
