@@ -8,6 +8,7 @@ from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 def rldp5_robot_action_client():
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
+    rospy.loginfo("client action...")
     client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
 
     # Waits until the action server has started up and started
@@ -17,6 +18,8 @@ def rldp5_robot_action_client():
 
     # Creates a goal to send to the action server.
     
+    rospy.loginfo("sending goal...")
+    
     goal = rldp5_robotGoal("home_all")
 
     # Sends the goal to the action server.
@@ -25,6 +28,7 @@ def rldp5_robot_action_client():
     rospy.loginfo("Goal has been sent to the action server.")
 
     # Waits for the server to finish performing the action.
+    rospy.loginfo("Waiting for result...")
     client.wait_for_result()
 
     # Prints out the result of executing the action
@@ -36,6 +40,6 @@ if __name__ == '__main__':
         # publish and subscribe over ROS.
         rospy.init_node('rldp5_Robot_ac.py')
         result = rldp5_robot_action_client()
-        rospy.loginfo(result.result_message)
+        rospy.loginfo(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion", file=sys.stderr)

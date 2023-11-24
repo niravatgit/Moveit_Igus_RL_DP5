@@ -194,7 +194,7 @@ class D1:
             return
         #now apply home postion offset to issue absolute position command to the dryve
         position = position - self.home_offset
-        print('Moving to absolute position ', position );
+        #print('Moving to absolute position ', position );
         self.velocity=int(velo * self.SI_unit_fact) # velocity multiplied by SI unit factor --> value that needs to be send by telegram
         self.acceleration=int(acc*self.SI_unit_fact) # acceleration multiplied by SI unit factor --> value that needs to be send by telegram
         self.position_value = int(position*self.SI_unit_fact) # positon in units

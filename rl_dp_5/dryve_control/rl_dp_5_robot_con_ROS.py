@@ -71,6 +71,7 @@ class RL_DP_5_ROS:
         self.robot = robot
 
         self._action_name = name
+        rospy.loginfo("Action server starting...")
         self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start = False)
 
        # Start the action server.
@@ -78,24 +79,31 @@ class RL_DP_5_ROS:
         rospy.loginfo("Action server started...")
 
     def execute_cb(self, goal):
-        self.goal = goal
-        success = True
-
-        if self._as.is_preempt_requested():
-            rospy.loginfo('%s: Preempted' % self._action_name)
-            self._as.set_preempted()
-            success = False
-
-        if self.goal == 'home_all':
-            self.robot.home_all()
-
-            self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
-            self._as.publish_feedback(self._feedback)
-
-        if success:
-            self._result.success = self._feedback.status
-            rospy.loginfo('%s: Succeeded' % self._action_name)
-            self._as.set_succeeded(self._result)
+    	rospy.loginfo("execute_cb starting...")
+    	self.goal = goal
+    	success = True
+    	rospy.loginfo("execute_cb starting...")
+    	
+    	if self._as.is_preempt_requested():
+    	    rospy.loginfo('%s: Preempted' % self._action_name)
+    	    self._as.set_preempted()
+    	    success = False
+    	    
+    	if self.goal == 'home_all':
+    	    self.robot.home_all()
+    	    rospy.loginfo("got goal...")
+    	    
+    	    self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
+    	    rospy.loginfo("publishing feedback...")
+    	    self._as.publish_feedback(self._feedback)
+    	    rospy.loginfo("published feedback...")
+    	    
+    	if success:
+    	    self._result.success = self._feedback.status
+    	    rospy.loginfo("publishing goal...")
+    	    rospy.loginfo('%s: Succeeded' % self._action_name)
+    	    self._as.set_succeeded(self._result)
+    	    rospy.loginfo("published goal...")
 
 
       
@@ -133,7 +141,7 @@ if __name__ == "__main__":
     print('Initialized an object for the robot')
     robot = Rl_DP_5()
     print('Initialized an object for Moveit interface')
-    move_it_interface = MoveItInterface(robot)
+    #move_it_interface = MoveItInterface(robot)
 
     rospy.init_node('ros_action_home_all')
     print('Initialized an object for ROS Interface further implementing ROS Actions')
@@ -141,7 +149,7 @@ if __name__ == "__main__":
 
     try:
         while not rospy.is_shutdown():
-            move_it_interface.listener()
+            #move_it_interface.listener()
             rospy.sleep(0.01)
 
     except rospy.ROSInterruptException:
