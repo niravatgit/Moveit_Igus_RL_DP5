@@ -79,37 +79,37 @@ class RL_DP_5_ROS:
         rospy.loginfo("Action server started...")
 
     def execute_cb(self, goal):
-    	rospy.loginfo("execute_cb starting...")
-    	self.goal = goal
-    	success = True
-    	rospy.loginfo("execute_cb starting...")
-    	positions = []
-    	
-    	if self._as.is_preempt_requested():
-    	    rospy.loginfo('%s: Preempted' % self._action_name)
-    	    self._as.set_preempted()
-    	    success = False
-    	    
-    	if self.goal == 'home_all':
-    	    self.robot.home_all()
-    	    rospy.loginfo("got goal...")
-    	    
+        rospy.loginfo("execute_cb starting...")
+        self.goal = goal
+        success = True
+        rospy.loginfo("execute_cb starting...")
+        positions = []
+        
+        if self._as.is_preempt_requested():
+            rospy.loginfo('%s: Preempted' % self._action_name)
+            self._as.set_preempted()
+            success = False
+            
+        if self.goal == 'home_all':
+            self.robot.home_all()
+            rospy.loginfo("got goal...")
+
     	    #self._feedback.status = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
-    	    for i in range(5):
-    	        positions.append(self.robot.get_current_position(i))
-    	    
-    	    self._feedback.status = positions   
+            for i in range(5):
+                positions.append(self.robot.get_current_position(i))
+                
+            self._feedback.status = positions   
     	    #Your executeCallback did not set the goal to a terminal status.  This is a bug in your ActionServer implementation. Fix your code!  For now, the ActionServer will set this goal to aborted
-    	    rospy.loginfo("publishing feedback for axis:")
-    	    self._as.publish_feedback(self._feedback.status)
-    	    rospy.loginfo("published feedback for axis: ")
-    	        
-    	    if success:
-    	        self._result.success = self._feedback.status
-    	        rospy.loginfo("publishing goal...")
-    	        rospy.loginfo('%s: Succeeded' % self._action_name)
-    	        self._as.set_succeeded(self._result)
-    	        rospy.loginfo("published goal...")
+            rospy.loginfo("publishing feedback for axis:")
+            self._as.publish_feedback(self._feedback.status)
+            rospy.loginfo("published feedback for axis: ")   
+            
+        if success:
+            self._result.success = self._feedback.status
+            rospy.loginfo("publishing goal...")
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            self._as.set_succeeded(self._result)
+            rospy.loginfo("published goal...")
 
 
       
