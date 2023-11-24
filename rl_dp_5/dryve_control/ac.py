@@ -9,10 +9,11 @@ def rldp5_robot_action_client():
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
     rospy.loginfo("client action...")
-    client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
+    client = actionlib.SimpleActionClient('ros_action_home_all', rldp5_robotAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
+    
     rospy.loginfo("Waiting for action server to come up...")
     client.wait_for_server()
 

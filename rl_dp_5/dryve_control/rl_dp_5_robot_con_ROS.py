@@ -83,6 +83,7 @@ class RL_DP_5_ROS:
     	self.goal = goal
     	success = True
     	rospy.loginfo("execute_cb starting...")
+    	positions = []
     	
     	if self._as.is_preempt_requested():
     	    rospy.loginfo('%s: Preempted' % self._action_name)
@@ -93,17 +94,22 @@ class RL_DP_5_ROS:
     	    self.robot.home_all()
     	    rospy.loginfo("got goal...")
     	    
-    	    self._feedback.status = list([np.deg2rad(self.robot.get_current_position(i)) for i in range(5)])
-    	    rospy.loginfo("publishing feedback...")
-    	    self._as.publish_feedback(self._feedback)
-    	    rospy.loginfo("published feedback...")
+    	    #self._feedback.status = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+    	    for i in range(5):
+    	        positions.append(self.robot.get_current_position(i))
     	    
-    	if success:
-    	    self._result.success = self._feedback.status
-    	    rospy.loginfo("publishing goal...")
-    	    rospy.loginfo('%s: Succeeded' % self._action_name)
-    	    self._as.set_succeeded(self._result)
-    	    rospy.loginfo("published goal...")
+    	    self._feedback.status = positions   
+    	    #Your executeCallback did not set the goal to a terminal status.  This is a bug in your ActionServer implementation. Fix your code!  For now, the ActionServer will set this goal to aborted
+    	    rospy.loginfo("publishing feedback for axis:")
+    	    self._as.publish_feedback(self._feedback.status)
+    	    rospy.loginfo("published feedback for axis: ")
+    	        
+    	    if success:
+    	        self._result.success = self._feedback.status
+    	        rospy.loginfo("publishing goal...")
+    	        rospy.loginfo('%s: Succeeded' % self._action_name)
+    	        self._as.set_succeeded(self._result)
+    	        rospy.loginfo("published goal...")
 
 
       
