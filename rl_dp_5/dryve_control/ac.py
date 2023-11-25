@@ -5,11 +5,11 @@ import actionlib
 import sys
 from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 
-def rldp5_robot_action_client():
+def rldp5_robot_action_client(command):
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
     rospy.loginfo("client action...")
-    client = actionlib.SimpleActionClient('ros_action_home_all', rldp5_robotAction)
+    client = actionlib.SimpleActionClient('ros_action_commands', rldp5_robotAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
@@ -19,9 +19,39 @@ def rldp5_robot_action_client():
 
     # Creates a goal to send to the action server.
     
+    if len(sys.argv)!= []:
+        num = len(sys.argv)-1
+        print("There are 3 arguments available. They are:")
+        print("1.'joint_1' '\n2. 'joint_2' \n3. 'joint_3' \n4. 'joint_4' \n5. 'joint_5' \n6. 'home_all'")
+    else:
+        print('Pass some kind of command to robot')
+        
+    if command == 'joint_1':
+        goal = rldp5_robotGoal(command)
+    
+    elif command == 'joint_2':
+        goal = rldp5_robotGoal(command)
+        
+    elif command == 'joint_3':
+        goal = rldp5_robotGoal(command)
+        
+    elif command == 'joint_4':
+        goal = rldp5_robotGoal(command)
+        
+    elif command == 'joint_5':
+        goal = rldp5_robotGoal(command)
+        
+    elif command == 'home_all':
+        goal = rldp5_robotGoal(command)
+
+    else:
+        print("Invalid command. Please check the above available commands")
+        sys.exit(1)
+
+    
     rospy.loginfo("sending goal...")
     
-    goal = rldp5_robotGoal("home_all")
+    
 
     # Sends the goal to the action server.
     client.send_goal(goal)
@@ -38,9 +68,15 @@ def rldp5_robot_action_client():
 if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
-        # publish and subscribe over ROS.
-        rospy.init_node('rldp5_Robot_ac.py')
-        result = rldp5_robot_action_client()
-        rospy.loginfo(result)
+        # publish and subscribe over ROS
+            
+        rospy.init_node('rldp5_Robot_ac_py')
+        if len(sys.argv) == 2:
+            goal_command = sys.argv[1]
+            result = rldp5_robot_action_client(goal_command)
+            rospy.loginfo(result)
+            
+        else:
+            pass
     except rospy.ROSInterruptException:
         print("program interrupted before completion", file=sys.stderr)

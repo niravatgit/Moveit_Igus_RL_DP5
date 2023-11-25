@@ -92,23 +92,48 @@ class RL_DP_5_ROS:
             
         if self.goal.command == 'home_all':
             self.robot.home_all()
-            rospy.loginfo("got goal...")
-
-            for i in range(5):
-                positions.append(self.robot.get_current_position(i))
-                
-            self._feedback.status = positions 
-            rospy.loginfo("publishing feedback for axis:")
-            self._as.publish_feedback(self._feedback)
-            rospy.loginfo("published feedback for axis: ")   
+            self.send_feedback()
+            
+        elif self.goal.command == 'joint_1':
+            self.robot.home(1)
+            self.send_feedback()
+        
+        elif self.goal.command == 'joint_2':
+            self.robot.home(2)
+            self.send_feedback()
+            
+        elif self.goal.command == 'joint_3':
+            self.robot.home(3)
+            self.send_feedback()
+            
+        elif self.goal.command == 'joint_4':
+            self.robot.home(4)
+            self.send_feedback()
+            
+        elif self.goal.command == 'joint_5':
+            self.robot.home(5)
+            self.send_feedback()
+            
+        else:
+            pass
             
         if success:
             self._result.success = self._feedback.status
             rospy.loginfo('%s: Succeeded' % self._action_name)
             self._as.set_succeeded(self._result)
             rospy.loginfo("published goal...")
-
-
+            
+    def send_feedback(self):
+        positions = []
+        for i in range(5):
+            positions.append(self.robot.get_current_position(i))
+            
+            self._feedback.status = positions 
+            rospy.loginfo("publishing feedback for axis:")
+            self._as.publish_feedback(self._feedback)
+            rospy.loginfo("published feedback for axis: ") 
+            
+        return self._feedback       
       
 class MoveItInterface:
 
@@ -146,7 +171,7 @@ if __name__ == "__main__":
     print('Initialized an object for Moveit interface')
     #move_it_interface = MoveItInterface(robot)
 
-    rospy.init_node('ros_action_home_all')
+    rospy.init_node('ros_action_commands')
     print('Initialized an object for ROS Interface further implementing ROS Actions')
     rldp5_ros_interface = RL_DP_5_ROS(robot, rospy.get_name())
 
