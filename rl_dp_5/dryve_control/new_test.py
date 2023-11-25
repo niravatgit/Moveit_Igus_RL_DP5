@@ -81,21 +81,13 @@ sub = rospy.Subscriber('/joint_states', JointState, test_msg, queue_size=1)
 while not rospy.is_shutdown():
 	print_msg(last_msg)
 
-
-
-
-
-
-
-
-
-
-
----------------------------------------------
+  
+---------------------------------------18-11-2023-----------------------------------
 #!/usr/bin/env python
 
 import rospy
 from sensor_msgs.msg import JointState
+
 from trajectory_msgs.msg import JointTrajectory
 from std_msgs.msg import Header
 import dryve_D1 as dryve
@@ -104,6 +96,17 @@ import numpy as np
 speed = 5
 accel = 100
 homespeed = 5
+
+import socket
+import time
+import tkinter as tk
+import struct
+import dryve_D1 as dryve
+
+speed = 5
+accel = 100
+homespeed = 10
+
 homeaccel = 100
 
 class Rl_DP_5:
@@ -116,7 +119,132 @@ class Rl_DP_5:
         Eaxis = dryve.D1("169.254.0.5", 502, 'Axis 5', -180, -179, 179)
 
         self.axis_controller = [Aaxis, Baxis, Caxis, Daxis, Eaxis]
+
         print('Created dryve interfaces')
+
+    def set_target_position(self, axis, desired_absolute_position):
+        if 0 <= axis < len(self.axis_controller):
+
+
+    def setTargetPosition(self, axis, desired_absolute_position):
+        if 0 <= axis < len(self):
+            self.axis_controller[axis].profile_pos_mode(desired_absolute_position, 5, 50)
+
+    def home(self, axis):
+        print(f"Started homing Axis {axis + 1}")
+        self.axis_controller[axis].homing(homespeed, homeaccel)
+        
+        
+    def home_all(self):
+
+    def homeAll(self):
+
+        for axis in self.axis_controller:
+            print(f"Started homing {axis.Axis}")
+            axis.homing(homespeed, homeaccel)
+
+    def get_current_position(self, axis):
+        return self.axis_controller[axis].getPosition()
+
+
+class MoveItInterface:
+    def __init__(self, robot):
+        self.robot = robot
+        rospy.init_node('moveit_interface_node', anonymous=True)
+
+        # Subscriber to get joint states during trajectory planning from MoveIt
+        rospy.Subscriber('/move_group/joint_states', JointState, self.moveit_joint_states_callback)
+
+        # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
+        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+
+=======
+class JointStatesSubscriber:
+    def __init__(self, robot):
+        self.robot = robot
+        rospy.init_node('joint_states_subscriber', anonymous=True)
+        self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+
+        self.position_history = []
+
+    def publish_current_positions(self):
+        joint_state = JointState()
+        joint_state.header.stamp = rospy.Time.now()
+        joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+
+        joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+
+        # Publish joint state to simulate the robot pose in MoveIt
+        self.fake_controller_joint_states_pub.publish(joint_state)
+
+    def moveit_joint_states_callback(self, data):
+        # Callback function for joint states from MoveIt
+        joint_trajectory = JointTrajectory()
+        joint_trajectory.header = Header(stamp=rospy.Time.now())
+        joint_trajectory.joint_names = data.name
+        joint_trajectory.points.append(data)
+
+        # Process joint trajectory as needed
+        # You can use joint_trajectory.points for planned joint positions
+        joint_state.position = [self.robot.get_current_position(i) for i in range(5)]
+
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
+
+
+    def joint_states_callback(self, data):
+        joint_state = JointState()
+        joint_state.header = data.header
+        joint_state.name = data.name
+        joint_state.position = data.position
+
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
+
+        # Check for repeated values
+        if self.check_repeated_values(joint_state.position, 20):
+            rospy.loginfo("Trajectory planned after 20 repeated positions.")
+            rospy.signal_shutdown("Trajectory planned.")
+
+    def check_repeated_values(self, current_values, threshold):
+        self.position_history.append(current_values)
+        if len(self.position_history) >= threshold:
+            recent_positions = self.position_history[-threshold:]
+            return all(positions == current_values for positions in recent_positions)
+        return False
+if __name__ == "__main__":
+    robot = Rl_DP_5()
+    joint_states_subscriber = JointStatesSubscriber(robot)
+
+    try:
+        while not rospy.is_shutdown():
+            joint_states_subscriber.publish_current_positions()
+            rospy.sleep(1)
+    except rospy.ROSInterruptException:
+        pass
+------------------------------------------------------------------------------------------------------------------------------------------------
+#!/usr/bin/env python
+
+import rospy
+from sensor_msgs.msg import JointState
+import dryve_D1 as dryve
+
+# Constants for motion control
+speed = 5
+accel = 100
+homespeed = 10
+homeaccel = 100
+
+class Rl_DP_5:
+    def __init__(self):
+        # Initialize your 5 D1 axes here
+        self.axis_controller = [
+            dryve.D1("169.254.0.1", 502, 'Axis 1', -140, -140, 140),
+            dryve.D1("169.254.0.2", 502, 'Axis 2', -100, -100, 50),
+            dryve.D1("169.254.0.3", 502, 'Axis 3', -115, -115, 115),
+            dryve.D1("169.254.0.4", 502, 'Axis 4', -100, -100, 100),
+            dryve.D1("169.254.0.5", 502, 'Axis 5', -180, -179, 179)
+        ]
 
     def set_target_position(self, axis, desired_absolute_position):
         if 0 <= axis < len(self.axis_controller):
@@ -134,37 +262,22 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
 
-class MoveItInterface:
+class JointStatesSubscriber:
     def __init__(self, robot):
         self.robot = robot
-        rospy.init_node('moveit_interface_node', anonymous=True)
-
-        # Subscriber to get joint states during trajectory planning from MoveIt
-        rospy.Subscriber('/move_group/joint_states', JointState, self.moveit_joint_states_callback)
-
-        # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
-        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
-
+        rospy.init_node('joint_states_subscriber', anonymous=True)
+        self.joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
         self.position_history = []
 
     def publish_current_positions(self):
         joint_state = JointState()
         joint_state.header.stamp = rospy.Time.now()
-        joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        joint_state.position = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
+        joint_state.name = [f"joint_{i+1}" for i in range(len(self.robot.axis_controller))]
+        joint_state.position = [self.robot.get_current_position(i) for i in range(len(self.robot.axis_controller))]
 
-        # Publish joint state to simulate the robot pose in MoveIt
-        self.fake_controller_joint_states_pub.publish(joint_state)
+        # Publish joint state
+        self.joint_states_pub.publish(joint_state)
 
-    def moveit_joint_states_callback(self, data):
-        # Callback function for joint states from MoveIt
-        joint_trajectory = JointTrajectory()
-        joint_trajectory.header = Header(stamp=rospy.Time.now())
-        joint_trajectory.joint_names = data.name
-        joint_trajectory.points.append(data)
-
-        # Process joint trajectory as needed
-        # You can use joint_trajectory.points for planned joint positions
 
     def joint_states_callback(self, data):
         joint_state = JointState()
@@ -173,7 +286,10 @@ class MoveItInterface:
         joint_state.position = data.position
 
         # Publish joint state
+
         self.fake_controller_joint_states_pub.publish(joint_state)
+        self.joint_states_pub.publish(joint_state)
+
 
         # Check for repeated values
         if self.check_repeated_values(joint_state.position, 20):
@@ -189,16 +305,27 @@ class MoveItInterface:
 
 if __name__ == "__main__":
     robot = Rl_DP_5()
+
     moveit_interface = MoveItInterface(robot)
 
     try:
         while not rospy.is_shutdown():
             moveit_interface.publish_current_positions()
+
+    joint_states_subscriber = JointStatesSubscriber(robot)
+
+    try:
+        while not rospy.is_shutdown():
+            joint_states_subscriber.publish_current_positions()
             rospy.sleep(1)
     except rospy.ROSInterruptException:
         pass
 
+
 ------------------------------------------23-11-2023: Multithreading and unclean code-----------------------------------------------
+=======
+----------------------------------------------------------------------------22-11-2023-------------------------------------------------------------------------
+
 #!/usr/bin/env python3
 
 import rospy
@@ -207,7 +334,10 @@ from trajectory_msgs.msg import JointTrajectory
 from moveit_msgs.msg import ExecuteTrajectoryActionResult
 import dryve_D1 as dryve
 import numpy as np
+
 import threading
+=======
+
 
 speed = 5
 accel = 100
@@ -215,7 +345,25 @@ homespeed = 5
 homeaccel = 100
 
 
+
 #
+=======
+#following are the fucntions that we want to expose through ROS
+#workspace will be /rl_dp_5
+#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
+#2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
+#3. service: /home : this will call homing from dryve_D1.py -> check the arguments
+#4. subsriber: /cmd/set_joint_position : this will set desired joint position by calling profile_pos_mode -> check arguments
+#5. 
+#
+#
+#
+#
+#
+#
+#start ROS Node code here
+
+
 
 class Rl_DP_5:
     def __init__(self):
@@ -362,6 +510,37 @@ class MoveItInterface:
 
     # def is_trajectory_finished(self):
     #     return self.execution_result is not None and self.execution_result.status.status == 3  # Check if status is SUCCEEDED
+=======
+
+class MoveItInterface:
+            
+#here we should have two things
+#1. Subsriber to joint_states from moveit to getjoint space trajectory to plannned pose
+#2. Published to fake_joint_controller to simulate the robot pose in Moveit based on current postiison of the real robot
+    def __init__(self, robot):
+        self.robot = robot
+        self.execution_result = None
+
+        rospy.init_node('joint_states_subscriber', anonymous=True)
+        self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=10)
+
+    def robot_position_to_moveit(self):
+        for i in range(5):
+            self.fake_controller_joint_states_pub.publish(np.deg2rad(robot.get_current_position(i)))
+
+        joint_state_position = rospy.Subscriber("/joint_states", JointState, callback_fn, queue_size=10)
+        return joint_state_position
+
+    # def joint_state_sub():
+    #     rospy.init_node('joint_state_sub_node', anonymous=True)
+    #     rospy.Subscriber("/joint_states", JointState, callback_fn)
+
+    def callback_fn(self, data):
+        self.position = list(data.position)
+        for axis, position in enumerate(self.position):
+            self.robot.set_target_position(axis, position)
+        rospy.sleep(0.01)
+
 
 if __name__ == "__main__":
     print('Initialized an object for the robot')
@@ -371,6 +550,7 @@ if __name__ == "__main__":
 
     try:
         while not rospy.is_shutdown():
+
 
             move_it_interface.listener()
 
@@ -436,3 +616,9 @@ class RL_DP_5_ROS:
         return self.action_client.get_result()
     
     -------------------------------------------------------------------
+=======
+            move_it_interface.robot_position_to_moveit()
+            rospy.sleep(0.01)
+
+    except rospy.ROSInterruptException:
+        pass

@@ -1,0 +1,10 @@
+# Goal
+string home_all
+
+---
+# Result
+string success
+
+---
+# Feedback
+float64[] status
