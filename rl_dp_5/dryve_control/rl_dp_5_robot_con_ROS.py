@@ -94,19 +94,16 @@ class RL_DP_5_ROS:
             self.robot.home_all()
             rospy.loginfo("got goal...")
 
-    	    #self._feedback.status = [np.deg2rad(self.robot.get_current_position(i)) for i in range(5)]
             for i in range(5):
                 positions.append(self.robot.get_current_position(i))
                 
-            self._feedback.status = positions   
-    	    #Your executeCallback did not set the goal to a terminal status.  This is a bug in your ActionServer implementation. Fix your code!  For now, the ActionServer will set this goal to aborted
+            self._feedback.status = positions 
             rospy.loginfo("publishing feedback for axis:")
             self._as.publish_feedback(self._feedback)
             rospy.loginfo("published feedback for axis: ")   
             
         if success:
             self._result.success = self._feedback.status
-            rospy.loginfo("publishing goal...")
             rospy.loginfo('%s: Succeeded' % self._action_name)
             self._as.set_succeeded(self._result)
             rospy.loginfo("published goal...")
