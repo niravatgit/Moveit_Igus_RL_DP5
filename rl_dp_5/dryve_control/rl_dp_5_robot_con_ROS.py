@@ -181,20 +181,27 @@ class MoveItInterface:
             for i in range(5):
                 self.t = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])), daemon=True)
                 self.t.start()
-
+    
 if __name__ == "__main__":
-    print('Initialized an object for the robot')
-    robot = Rl_DP_5()
-    print('Initialized an object for Moveit interface')
-    #move_it_interface = MoveItInterface(robot)
-
-    rospy.init_node('ros_action_commands')
-    print('Initialized an object for ROS Interface further implementing ROS Actions')
-    rldp5_ros_interface = RL_DP_5_ROS(robot, rospy.get_name())
-
     try:
+        # Initialize the robot
+        print('Initializing an object for the robot...')
+        robot = Rl_DP_5()
+
+        # Uncomment the following lines if MoveItInterface is to be used instead of Action commands
+        # print('Initializing an object for MoveIt interface...')
+        # move_it_interface = MoveItInterface(robot)
+
+        # Initialize the ROS interface for implementing ROS Actions
+        print('Initializing an object for ROS Interface further implementing ROS Actions...')
+        rldp5_ros_interface = RL_DP_5_ROS(robot, rospy.get_name())
+
+        # Main loop
         while not rospy.is_shutdown():
-            #move_it_interface.listener()
+            # Uncomment the following line if MoveItInterface is to be used instead of Action commands
+            # move_it_interface.listener()
+
+            # Sleep to control the loop frequency
             rospy.sleep(0.01)
 
     except rospy.ROSInterruptException:
