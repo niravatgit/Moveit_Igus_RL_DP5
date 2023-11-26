@@ -114,6 +114,9 @@ class RL_DP_5_ROS:
             self.robot.home(5)
             self.send_feedback()
             
+        elif self.goal.command == 'set_shutdn':
+            dryve.set_shutdn()
+            self.send_feedback()            
         else:
             pass
             

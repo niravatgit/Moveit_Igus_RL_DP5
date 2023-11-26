@@ -44,6 +44,9 @@ def rldp5_robot_action_client(command):
     elif command == 'home_all':
         goal = rldp5_robotGoal(command)
 
+    elif command == 'set_shutdn':
+        goal = rldp5_robotGoal(command)
+        
     else:
         print("Invalid command. Please check the above available commands")
         sys.exit(1)
