@@ -63,63 +63,77 @@ class Rl_DP_5:
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RL_DP_5_ROS:
+    """
+    Class representing the RLDP5 ROS Action Server.
+
+    This class handles the execution of ROS actions for the RLDP5 robot.
+
+    Attributes:
+    - _feedback (rldp5_robotFeedback): Feedback object for the action.
+    - _result (rldp5_robotResult): Result object for the action.
+    - robot: Instance of the RLDP5 robot.
+    - _action_name (str): Name of the ROS action server.
+    - _as (SimpleActionServer): SimpleActionServer for handling ROS actions.
+    - goal (rldp5_robotGoal): Goal received from the action client.
+    """
 
     _feedback = rldp5_robotFeedback()
     _result = rldp5_robotResult()
 
     def __init__(self, robot, name):
-        self.robot = robot
+        """
+        Initializes the RLDP5ROS instance.
 
+        Args:
+        - robot: Instance of the RLDP5 robot.
+        - name (str): Name of the ROS action server.
+        """
+        self.robot = robot
         self._action_name = name
         rospy.loginfo("Action server starting...")
-        self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start = False)
+        self._as = actionlib.SimpleActionServer(
+            self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False
+        )
 
-       # Start the action server.
+        # Start the action server.
         self._as.start()
         rospy.loginfo("Action server started...")
 
     def execute_cb(self, goal):
+        """
+        Callback function for executing the ROS action.
+
+        Args:
+        - goal (rldp5_robotGoal): Goal received from the action client.
+        """
         rospy.loginfo("execute_cb starting...")
         self.goal = goal
         success = True
         rospy.loginfo("execute_cb starting...")
-        positions = []
-        
+
         if self._as.is_preempt_requested():
             rospy.loginfo('%s: Preempted' % self._action_name)
             self._as.set_preempted()
             success = False
-            
-        if self.goal.command == 'home_all':
+
+        if goal.command == 'home_all':
             self.robot.home_all()
             self.send_feedback()
-            
-        elif self.goal.command == 'joint_1':
-            self.robot.home(1)
+
+        elif goal.command.startswith('joint_') and goal.command[6:].isdigit():
+            joint_number = int(goal.command[6:])
+            self.robot.home(joint_number)
             self.send_feedback()
-        
-        elif self.goal.command == 'joint_2':
-            self.robot.home(2)
-            self.send_feedback()
-            
-        elif self.goal.command == 'joint_3':
-            self.robot.home(3)
-            self.send_feedback()
-            
-        elif self.goal.command == 'joint_4':
-            self.robot.home(4)
-            self.send_feedback()
-            
-        elif self.goal.command == 'joint_5':
-            self.robot.home(5)
-            self.send_feedback()
-            
-        elif self.goal.command == 'set_shutdn':
+
+        elif goal.command == 'set_shutdn':
             dryve.set_shutdn()
-            self.send_feedback()            
+            self.send_feedback()
+
         else:
+            # Handle invalid commands here if needed
+            print("Provide valid goal command from Client side")
             pass
-            
+
         if success:
             self._result.success = self._feedback.status
             rospy.loginfo('%s: Succeeded' % self._action_name)
