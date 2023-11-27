@@ -39,6 +39,7 @@ class RLDP5RobotClient:
         """
         
         if command in self.available_commands:
+            print("Command given to robot: ", command)
             return rldp5_robotGoal(command)
         else:
             print("Invalid command. Please check the available commands.")
