@@ -10,6 +10,7 @@ project(rldp5_msgs)
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -60,16 +61,17 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
- add_action_files(
-   FILES
-   rldp5_robot.action
+add_action_files(
+  FILES
+  rldp5_robot.action
 #   Action2.action
- )
+)
+
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   actionlib_msgs#   std_msgs
+   actionlib_msgs   std_msgs
  )
 
 ################################################

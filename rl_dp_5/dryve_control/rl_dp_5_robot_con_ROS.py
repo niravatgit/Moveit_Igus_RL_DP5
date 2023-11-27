@@ -7,7 +7,7 @@ import numpy as np
 import threading
 import actionlib
 from rldp5_msgs.msg import  rldp5_robotAction, _rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
-
+from rldp5_msg
 
 speed = 5
 accel = 100
