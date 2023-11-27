@@ -92,9 +92,7 @@ class RL_DP_5_ROS:
         self.robot = robot
         self._action_name = name
         rospy.loginfo("Action server starting...")
-        self._as = actionlib.SimpleActionServer(
-            self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False
-        )
+        self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
 
         # Start the action server.
         self._as.start()

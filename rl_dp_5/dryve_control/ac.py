@@ -5,96 +5,52 @@ import actionlib
 import sys
 from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 
-class RLDP5RobotClient:
-    def __init__(self):
-        """
-        Initializes the RLDP5RobotClient.
+def rldp5_robot_action_client(goal_command):
+    # Creates the SimpleActionClient, passing the type of the action
+    # (rldp5_robotAction) to the constructor.
+    rospy.loginfo("client action...")
+    client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
 
-        The client is used to send goals to the 'ros_action_commands' action server.
+    # Waits until the action server has started up and started
+    # listening for goals.
+    rospy.loginfo("Waiting for action server to come up...")
+    client.wait_for_server()
 
-        Attributes:
-        - client: SimpleActionClient for the 'ros_action_commands' action server.
-        - available_commands: List of valid commands that the robot can execute.
-        """
-        self.client = actionlib.SimpleActionClient('ros_action_commands', rldp5_robotAction)
-        self.available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn']
-        print("The avaialble commands to send to the Action Server:\n", self.available_commands)
+    # Creates a goal to send to the action server.
 
-    def wait_for_server(self):
-        
-        # Waits for the action server to come up before sending goals.
+    available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn']
+    print("The avaialble commands to send to the Action Server:\n", available_commands)
 
-        rospy.loginfo("Waiting for action server to come up...")
-        self.client.wait_for_server()
-
-    def create_goal(self, command):
-        """
-        Creates a goal for the robot action based on the provided command.
-
-        Args:
-        - command (str): The command for the robot action.
-
-        Returns:
-        - rldp5_robotGoal: The goal for the robot action.
-        """
-        
-        if command in self.available_commands:
-            print("Command given to robot: ", command)
-            return rldp5_robotGoal(command)
-        else:
-            print("Invalid command. Please check the available commands.")
-            sys.exit(1)
-
-    def send_goal(self, goal):
-        """
-        Sends the provided goal to the action server.
-
-        Args:
-        - goal (rldp5_robotGoal): The goal to be sent to the action server.
-        """
-        rospy.loginfo("Sending goal...")
-        self.client.send_goal(goal)
+    if goal_command in available_commands:
+        rospy.loginfo("sending goal...")
+        # Sends the goal to the action server.
+        print("Given goal command : ", goal_command)
+        client.send_goal(goal_command)
         rospy.loginfo("Goal has been sent to the action server.")
 
-    def wait_for_result(self):
-        """
-        Waits for the action server to finish performing the action.
-        """
-        rospy.loginfo("Waiting for result...")
-        self.client.wait_for_result()
+    else:
+        print("Invalid command. Please check the available commands.")
+        sys.exit(1)
 
-    def get_result(self):
-        """
-        Retrieves and returns the result of executing the action.
+    # Waits for the server to finish performing the action.
+    rospy.loginfo("Waiting for result...")
+    client.wait_for_result()
 
-        Returns:
-        - result: The result of executing the action.
-        """
-        return self.client.get_result()
+    # Prints out the result of executing the action
+    return client.get_result()  # A CounterWithDelayResult
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('rldp5_Robot_ac_py')
+        # Initializes a rospy node so that the SimpleActionClient can
+        # publish and subscribe over ROS.
+        rospy.init_node('rldp5_Robot_ac.py')
         if len(sys.argv) == 2:
             goal_command = sys.argv[1]
-
-            # Create and initialize the RLDP5RobotClient
-            robot_client = RLDP5RobotClient()
-            robot_client.wait_for_server()
-
-            # Create a goal based on the provided command
-            goal = robot_client.create_goal(goal_command)
-
-            # Send the goal to the action server
-            robot_client.send_goal(goal)
-
-            # Wait for the action server to finish performing the action
-            robot_client.wait_for_result()
-
-            # Get and print the result of executing the action
-            result = robot_client.get_result()
+            
+            result = rldp5_robot_action_client(goal_command)
             rospy.loginfo(result)
+
         else:
-            print('Pass some kind of command to the robot.')
+            rospy.loginfo("Provide the arguments properly!!!")
     except rospy.ROSInterruptException:
-        print("Program interrupted before completion", file=sys.stderr)
+        print("program interrupted before completion", file=sys.stderr)
