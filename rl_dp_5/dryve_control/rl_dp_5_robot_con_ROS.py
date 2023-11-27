@@ -40,6 +40,15 @@ class Rl_DP_5:
 
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
+    
+    def set_shutdn():
+        return dryve.D1.set_shutdn()
+    
+    def set_swon():
+        return dryve.D1.set_swon()
+    
+    def set_swon():
+        return dryve.D1.set_op_en()
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 #following are the fucntions that we want to expose through ROS
@@ -115,29 +124,44 @@ class RL_DP_5_ROS:
             self._as.set_preempted()
             success = False
 
-        if self.goal.command == 'home_all':
-            self.robot.home_all()
-            self.send_feedback()
+        if isinstance(self.goal, str):
+            if self.goal.command == 'home_all':
+                self.robot.home_all()
+                self.send_feedback()
+                
+            elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
+                joint_number = int(self.goal.command[6:])           
+                self.robot.home(joint_number)
+                self.send_feedback()
+                
+            elif self.goal.command == 'set_shutdn':
+                dryve.set_shutdn()
+                self.send_feedback()
 
-        elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
-            joint_number = int(self.goal.command[6:])
-            self.robot.home(joint_number)
-            self.send_feedback()
+            elif self.goal.command == 'set_swon':
+                dryve.set_swon()
+                self.send_feedback()
 
-        elif self.goal.command == 'set_shutdn':
-            dryve.set_shutdn()
-            self.send_feedback()
-
-        else:
-            # Handle invalid commands here if needed
-            print("Provide valid goal command from Client side")
-            success = False
+            elif self.goal.command == 'set_op_en':
+                dryve.set_op_en()
+                self.send_feedback()
+                
+            else:
+                # Handle invalid commands here if needed            
+                print("Provide valid goal command from Client side")
+                success = False
 
         if success:
             self._result.success = self._feedback.status
-            rospy.loginfo('%s: Succeeded' % self._action_name)
-            self._as.set_succeeded(self._result)
-            rospy.loginfo("published goal...")
+
+            #Checking if goal is in an active state before setting it as success
+            if self._as.is_active():
+                rospy.loginfo('%s: Succeeded' % self._action_name)
+                self._as.set_succeeded(self._result)
+                rospy.loginfo("published goal...")
+
+            else:
+                rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
             
     def send_feedback(self):
         positions = []

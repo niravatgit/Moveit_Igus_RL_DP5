@@ -21,7 +21,7 @@ def rldp5_robot_action_client(goal_command):
 
     # Creates a goal to send to the action server.
 
-    available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn']
+    available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en']
     print("The avaialble commands to send to the Action Server:\n", available_commands)
 
     if goal_command in available_commands:
