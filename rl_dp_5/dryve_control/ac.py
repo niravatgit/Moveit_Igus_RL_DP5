@@ -15,6 +15,8 @@ def rldp5_robot_action_client(goal_command):
     # Waits until the action server has started up and started
     # listening for goals.
     rospy.loginfo("Waiting for action server to come up...")
+    
+    print(goal_command)
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
@@ -25,8 +27,7 @@ def rldp5_robot_action_client(goal_command):
     if goal_command in available_commands:
         rospy.loginfo("sending goal...")
         # Sends the goal to the action server.
-        goal = str(goal_command)
-        print("Given goal command : ", goal)
+        goal = rldp5_robotGoal(goal_command)
         client.send_goal(goal)
         rospy.loginfo("Goal has been sent to the action server.")
 

@@ -93,8 +93,8 @@ class RL_DP_5_ROS:
         self._action_name = rospy.get_name()
         rospy.loginfo("Action server starting...")
         
-        self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
-
+        # self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
+        self._as = actionlib.SimpleActionServer('RLDP5_Robot_Action', rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
         # Start the action server.
         self._as.start()
         rospy.loginfo("Action server started...")
@@ -116,23 +116,23 @@ class RL_DP_5_ROS:
             self._as.set_preempted()
             success = False
 
-        if goal.command == 'home_all':
+        if self.goal.command == 'home_all':
             self.robot.home_all()
             self.send_feedback()
 
-        elif goal.command.startswith('joint_') and goal.command[6:].isdigit():
+        elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
             joint_number = int(goal.command[6:])
             self.robot.home(joint_number)
             self.send_feedback()
 
-        elif goal.command == 'set_shutdn':
+        elif self.goal.command == 'set_shutdn':
             dryve.set_shutdn()
             self.send_feedback()
 
         else:
             # Handle invalid commands here if needed
             print("Provide valid goal command from Client side")
-            pass
+            success = False
 
         if success:
             self._result.success = self._feedback.status
