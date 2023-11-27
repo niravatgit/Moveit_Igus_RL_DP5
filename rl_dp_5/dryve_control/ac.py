@@ -24,16 +24,11 @@ def rldp5_robot_action_client(goal_command):
     available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en']
     print("The avaialble commands to send to the Action Server:\n", available_commands)
 
-    if goal_command in available_commands:
-        rospy.loginfo("sending goal...")
-        # Sends the goal to the action server.
-        goal = rldp5_robotGoal(goal_command)
-        client.send_goal(goal)
-        rospy.loginfo("Goal has been sent to the action server.")
-
-    else:
-        print("Invalid command. Please check the available commands.")
-        sys.exit(1)
+    rospy.loginfo("sending goal...")
+    # Sends the goal to the action server.
+    goal = rldp5_robotGoal(goal_command)
+    client.send_goal(goal)
+    rospy.loginfo("Goal has been sent to the action server.")
 
     # Waits for the server to finish performing the action.
     rospy.loginfo("Waiting for result...")

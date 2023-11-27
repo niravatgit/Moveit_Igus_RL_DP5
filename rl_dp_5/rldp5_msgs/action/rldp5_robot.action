@@ -1,5 +1,6 @@
 # Goal
 string command
+float64[] desired_position
 
 ---
 # Result

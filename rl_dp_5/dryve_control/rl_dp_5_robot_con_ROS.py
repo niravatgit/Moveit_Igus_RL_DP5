@@ -119,45 +119,50 @@ class RL_DP_5_ROS:
         success = True
         rospy.loginfo("execute_cb starting...")
 
-        if self._as.is_preempt_requested():
-            rospy.loginfo('%s: Preempted' % self._action_name)
-            self._as.set_preempted()
-            success = False
-
-        if self.goal.command == 'home_all':
-            self.robot.home_all()
-            self.send_feedback()
-            
-        elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
-            joint_number = int(self.goal.command[6:])                           
-            self.robot.home(joint_number)                
-            self.send_feedback()
-
-        elif self.goal.command == 'set_shutdn':
-            dryve.set_shutdn()
-            self.send_feedback()
-
-        elif self.goal.command == 'set_swon':
-            dryve.set_swon()
-            self.send_feedback()
-
-        elif self.goal.command == 'set_op_en':
-            dryve.set_op_en()
-            self.send_feedback()
+        var = isinstance(self.goal, str)
+        if var == True:
+            if self._as.is_preempt_requested():
+                rospy.loginfo('%s: Preempted' % self._action_name)
+                self._as.set_preempted()
+                success = False
                 
-        else:
-            # Handle invalid commands here if needed            
-            print("Provide valid goal command from Client side")
-            success = False
+            if self.goal.command == 'home_all':
+                self.robot.home_all()
+                self.send_feedback()
+                
+            elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
+                joint_number = int(self.goal.command[6:])                           
+                self.robot.home(joint_number)                
+                self.send_feedback()
+                
+            elif self.goal.command == 'set_shutdn':
+                dryve.set_shutdn()
+                self.send_feedback()
+                
+            elif self.goal.command == 'set_swon':
+                dryve.set_swon()
+                self.send_feedback()
+                
+            elif self.goal.command == 'set_op_en':
+                dryve.set_op_en()            
+                self.send_feedback()
+            
+            else:
+                # Handle invalid commands here if needed            
+                print("Provide valid goal command from Client side")
+                success = False
+                
+            if success:
+                self._result.success = self._feedback.status
+                rospy.loginfo('%s: Succeeded' % self._action_name)
+                self._as.set_succeeded(self._result)
+                rospy.loginfo("published goal...")
+                
+            else:
+                rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
 
-        if success:
-            self._result.success = self._feedback.status
-            rospy.loginfo('%s: Succeeded' % self._action_name)
-            self._as.set_succeeded(self._result)
-            rospy.loginfo("published goal...")
-
         else:
-            rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
+            print('going for floats')
             
     def send_feedback(self):
         positions = []
@@ -169,7 +174,17 @@ class RL_DP_5_ROS:
             self._as.publish_feedback(self._feedback)
             rospy.loginfo("published feedback for axis: ") 
             
-        return self._feedback       
+        return self._feedback  
+
+    def process_args(desired_position):
+        desired_position = []
+        for arg in desired_position[:5]:
+            if arg.replace('.', '', 1).isdigit():
+                desired_position.append(float(arg))
+            else:
+                desired_position.append(0.0)
+
+        return desired_position
       
 class MoveItInterface:
 
