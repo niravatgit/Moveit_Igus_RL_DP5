@@ -232,5 +232,16 @@ AttributeError: 'list' object has no attribute 'encode'
 
 [ERROR] [1701086687.207823]: To transition to an aborted state, the goal must be in a preempting or active state, it is currently in state: 3
 
+
+
+
+[ERROR] [1701086986.218492]: Exception in your execute callback: module 'dryve_D1' has no attribute 'set_shutdn'
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 289, in executeLoop
+    self.execute_callback(goal)
+  File "rl_dp_5_robot_con_ROS.py", line 128, in execute_cb
+    dryve.set_shutdn()
+AttributeError: module 'dryve_D1' has no attribute 'set_shutdn'
+
 """
 
