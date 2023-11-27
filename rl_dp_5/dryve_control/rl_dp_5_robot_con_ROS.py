@@ -121,7 +121,7 @@ class RL_DP_5_ROS:
             self.send_feedback()
 
         elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
-            joint_number = int(goal.command[6:])
+            joint_number = int(self.ssgoal.command[6:])
             self.robot.home(joint_number)
             self.send_feedback()
 
@@ -207,3 +207,14 @@ if __name__ == "__main__":
 
     except rospy.ROSInterruptException:
         pass
+
+"""        
+[ERROR] [1701084784.694554]: Exception in your execute callback: 'rldp5_robotGoal' object has no attribute 'command'
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 289, in executeLoop
+    self.execute_callback(goal)
+  File "rl_dp_5_robot_con_ROS.py", line 119, in execute_cb
+    if self.goal.command == 'home_all':
+AttributeError: 'rldp5_robotGoal' object has no attribute 'command'
+"""
+
