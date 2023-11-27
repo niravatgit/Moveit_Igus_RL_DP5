@@ -81,7 +81,7 @@ class RL_DP_5_ROS:
     _feedback = rldp5_robotFeedback()
     _result = rldp5_robotResult()
 
-    def __init__(self, robot, name):
+    def __init__(self, robot):
         """
         Initializes the RLDP5ROS instance.
 
@@ -90,8 +90,9 @@ class RL_DP_5_ROS:
         - name (str): Name of the ROS action server.
         """
         self.robot = robot
-        self._action_name = name
+        self._action_name = rospy.get_name()
         rospy.loginfo("Action server starting...")
+        
         self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
 
         # Start the action server.
@@ -192,8 +193,9 @@ if __name__ == "__main__":
         # move_it_interface = MoveItInterface(robot)
 
         # Initialize the ROS interface for implementing ROS Actions
+        rospy.init_node('RLDP5_Robot_Action', anonymous=True)
         print('Initializing an object for ROS Interface further implementing ROS Actions...')
-        rldp5_ros_interface = RL_DP_5_ROS(robot, rospy.get_name())
+        rldp5_ros_interface = RL_DP_5_ROS(robot)
 
         # Main loop
         while not rospy.is_shutdown():

@@ -8,6 +8,7 @@ from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 def rldp5_robot_action_client(goal_command):
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
+    print(goal_command)
     rospy.loginfo("client action...")
     client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
 
@@ -24,8 +25,9 @@ def rldp5_robot_action_client(goal_command):
     if goal_command in available_commands:
         rospy.loginfo("sending goal...")
         # Sends the goal to the action server.
-        print("Given goal command : ", goal_command)
-        client.send_goal(goal_command)
+        goal = str(goal_command)
+        print("Given goal command : ", goal)
+        client.send_goal(goal)
         rospy.loginfo("Goal has been sent to the action server.")
 
     else:
@@ -43,8 +45,8 @@ if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
-        rospy.init_node('rldp5_Robot_ac.py')
         if len(sys.argv) == 2:
+            rospy.init_node('rldp5_Robot_ac_py')
             goal_command = sys.argv[1]
             
             result = rldp5_robot_action_client(goal_command)
