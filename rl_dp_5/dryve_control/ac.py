@@ -45,14 +45,16 @@ if __name__ == '__main__':
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
         if len(sys.argv) > 1:
-            goal_command = [float(arg) for arg in sys.argv[1:]]
-            result = rldp5_robot_action_client(goal_command)
-
-        elif len(sys.argv) == 2:
             rospy.init_node('rldp5_Robot_ac_py')
-            goal_command = sys.argv[1]
-            result = rldp5_robot_action_client(goal_command)
+            var = isinstance(sys.argv[1], str)
+            if var is True:
+                goal_command = sys.argv[1]
+                result = rldp5_robot_action_client(goal_command)
 
+            else:
+                goal_command = [float(arg) for arg in sys.argv[1:]]
+                result = rldp5_robot_action_client(goal_command)
+            
         else:
             rospy.loginfo("Provide the arguments properly!!!")
 
