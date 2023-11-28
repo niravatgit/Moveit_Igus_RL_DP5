@@ -149,13 +149,14 @@ class RL_DP_5_ROS:
             # Handle invalid commands here if needed            
             print("Provide valid goal command from Client side")
             success = False
-       if success:
+            
+        if success:
            self._result.success = self._feedback.status
            rospy.loginfo('%s: Succeeded' % self._action_name)
            self._as.set_succeeded(self._result.success)
            rospy.loginfo("published goal...")
            
-       else:
+        else:
            rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
             
     def send_feedback(self):
