@@ -62,3 +62,22 @@ if __name__ == '__main__':
         # rospy.loginfo(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion", file=sys.stderr)
+        
+        
+"""
+[INFO] [1701151255.273062]: client action...
+[INFO] [1701151255.282536]: Waiting for action server to come up...
+The avaialble commands to send to the Action Server:
+ ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en']
+[INFO] [1701151255.304574]: sending goal...
+Traceback (most recent call last):
+  File "ac.py", line 52, in <module>
+    result = rldp5_robot_action_client(goal_command)
+  File "ac.py", line 28, in rldp5_robot_action_client
+    goal = rldp5_robotGoal(goal_command)
+  File "/home/inspire_igus/catkin_ws/devel/lib/python3/dist-packages/rldp5_msgs/msg/_rldp5_robotGoal.py", line 38, in __init__
+    super(rldp5_robotGoal, self).__init__(*args, **kwds)
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 354, in __init__
+    raise TypeError('Invalid number of arguments, args should be %s' % str(self.__slots__) + ' args are' + str(args))
+TypeError: Invalid number of arguments, args should be ['command', 'desired_position'] args are('0.0',)
+"""
