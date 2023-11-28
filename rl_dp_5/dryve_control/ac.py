@@ -4,7 +4,7 @@ import rospy
 import actionlib
 import sys
 from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
-from rldp5_msgs.msg import rldp5_robot_2Goal
+
 
 def rldp5_robot_action_client(goal_command):
     # Creates the SimpleActionClient, passing the type of the action
@@ -26,7 +26,7 @@ def rldp5_robot_action_client(goal_command):
     # Sends the goal to the action server.
     var = isinstance(goal_command, str)
     if var == True:
-        goal = rldp5_robot_2Goal(goal_command)
+        goal = rldp5_robotGoal(goal_command)
 
     else:
         goal = goal_command + [0.0] * (5 - len(goal_command))
@@ -60,3 +60,33 @@ if __name__ == '__main__':
 
     except rospy.ROSInterruptException:
         print("program interrupted before completion", file=sys.stderr)
+        
+        
+"""
+
+[INFO] [1701165468.769550]: client action...
+[INFO] [1701165468.777712]: Waiting for action server to come up...
+The avaialble commands to send to the Action Server:
+ ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en']
+[INFO] [1701165468.820650]: sending goal...
+Traceback (most recent call last):
+  File "ac.py", line 55, in <module>
+    result = rldp5_robot_action_client(goal_command)
+  File "ac.py", line 29, in rldp5_robot_action_client
+    goal = rldp5_robotGoal(goal_command)
+  File "/home/inspire_igus/catkin_ws/devel/lib/python3/dist-packages/rldp5_msgs/msg/_rldp5_robotGoal.py", line 38, in __init__
+    super(rldp5_robotGoal, self).__init__(*args, **kwds)
+  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 354, in __init__
+    raise TypeError('Invalid number of arguments, args should be %s' % str(self.__slots__) + ' args are' + str(args))
+TypeError: Invalid number of arguments, args should be ['command', 'desired_position'] args are('home_all',)
+
+
+Traceback (most recent call last):
+  File "ac.py", line 53, in <module>
+    goal_command = [float(arg) for arg in sys.argv[1:]]
+  File "ac.py", line 53, in <listcomp>
+    goal_command = [float(arg) for arg in sys.argv[1:]]
+ValueError: could not convert string to float: 'home_all'
+
+
+"""
