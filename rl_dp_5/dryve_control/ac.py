@@ -24,12 +24,11 @@ def rldp5_robot_action_client(goal_command):
 
     rospy.loginfo("sending goal...")
     # Sends the goal to the action server.
-    var = isinstance(goal_command, str)
-    if var == True:
-        goal = rldp5_robotGoal(goal_command)
+    if isinstance(goal_command, str):
+        goal = rldp5_robotGoal(command = goal_command)
 
     else:
-        goal = goal_command + [0.0] * (5 - len(goal_command))
+        goal = rldp5_robotGoal(command = 'position', desired_position = goal_command)
 
     client.send_goal(goal)
     rospy.loginfo("Goal has been sent to the action server.")
