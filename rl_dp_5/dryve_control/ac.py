@@ -4,6 +4,7 @@ import rospy
 import actionlib
 import sys
 from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
+from rldp5_msgs.msg import rldp5_robot_2Goal
 
 def rldp5_robot_action_client(goal_command):
     # Creates the SimpleActionClient, passing the type of the action
@@ -25,7 +26,7 @@ def rldp5_robot_action_client(goal_command):
     # Sends the goal to the action server.
     var = isinstance(goal_command, str)
     if var == True:
-        goal = rldp5_robotGoal(goal_command)
+        goal = rldp5_robot_2Goal(goal_command)
 
     else:
         goal = goal_command + [0.0] * (5 - len(goal_command))

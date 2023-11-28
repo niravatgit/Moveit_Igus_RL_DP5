@@ -6,7 +6,8 @@ import dryve_D1 as dryve
 import numpy as np
 import threading
 import actionlib
-from rldp5_msgs.msg import  rldp5_robotAction, _rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
+from rldp5_msgs.msg import  rldp5_robotAction, rldp5_robotFeedback, rldp5_robotResult
+
 
 speed = 5
 accel = 100
@@ -52,14 +53,7 @@ class Rl_DP_5:
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 #following are the fucntions that we want to expose through ROS
-	#workspace will be /rl_dp_5
-	#1. publisher: /status for a joint such as {mode of operation, current position, is_initialized }, this will require calling multiple functiosn from dryve_D1.py
-	#2. service: /setMode : integer as an input passed on to function set_mode from dryve_D1.py -> check the arguments
-	#3. service: /home : this will call homing from dryve_D1.py -> check the arguments
-	#4. subsriber: /cmd/set_joint_position : this will set desired joint position by calling profile_pos_mode -> check arguments
-	#5. 
-	#
-	#
+	#workspace will be /rl_dp_5from rldp5_msgs.msg import  rldp5_robot_2Feedback, rldp5_robot_2Result
 	#
 	#
 	#
@@ -98,7 +92,7 @@ class RL_DP_5_ROS:
         - name (str): Name of the ROS action server.
         """
         self.robot = robot
-        self._action_name = rospy.get_name()
+        # self._action_name = rospy.get_name()
         rospy.loginfo("Action server starting...")
         
         # self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
@@ -125,6 +119,7 @@ class RL_DP_5_ROS:
                 rospy.loginfo('%s: Preempted' % self._action_name)
                 self._as.set_preempted()
                 success = False
+                result = False
         if var == True:
 
             if self.goal.command == 'home_all':
@@ -166,10 +161,13 @@ class RL_DP_5_ROS:
             print('going for floats')
             res = self.process_args(self.goal)
             print("Desired Positions: ", res)
-            [self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) for i in range(5)]
+            for i in range(5):
+                self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i]))
+
+
             self.send_feedback()
 
-            if success:
+            if result:
                 self._result.result = self._feedback.status
                 rospy.loginfo('%s: Succeeded' % self._action_name)
                 self._as.set_succeeded(self._result.result)
@@ -183,11 +181,10 @@ class RL_DP_5_ROS:
         for i in range(5):
             positions.append(self.robot.get_current_position(i))
             
-            self._feedback.status = positions 
-            rospy.loginfo("publishing feedback for axis:")
+            self._feedback.status = positions
+            rospy.loginfo("Publishing feedback to the client...") 
             self._as.publish_feedback(self._feedback)
-            rospy.loginfo("published feedback for axis: ") 
-            
+
         return self._feedback  
 
     def process_args(desired_position):
@@ -199,6 +196,9 @@ class RL_DP_5_ROS:
                 desired_position.append(0.0)
 
         return desired_position
+    
+
+# -------------------------------------------------------------------------------------------------------------------------------------
       
 class MoveItInterface:
 
