@@ -8,15 +8,12 @@ from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 def rldp5_robot_action_client(goal_command):
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
-    print(goal_command)
     rospy.loginfo("client action...")
     client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
     rospy.loginfo("Waiting for action server to come up...")
-    
-    print(goal_command)
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
@@ -26,7 +23,13 @@ def rldp5_robot_action_client(goal_command):
 
     rospy.loginfo("sending goal...")
     # Sends the goal to the action server.
-    goal = rldp5_robotGoal(goal_command)
+    var = isinstance(goal_command, str)
+    if var == True:
+        goal = rldp5_robotGoal(goal_command)
+
+    else:
+        goal = goal_command + [0.0] * (5 - len(goal_command))
+
     client.send_goal(goal)
     rospy.loginfo("Goal has been sent to the action server.")
 
@@ -41,14 +44,19 @@ if __name__ == '__main__':
     try:
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
-        if len(sys.argv) == 2:
+        if len(sys.argv) > 1:
+            goal_command = [float(arg) for arg in sys.argv[1:]]
+            result = rldp5_robot_action_client(goal_command)
+
+        elif len(sys.argv) == 2:
             rospy.init_node('rldp5_Robot_ac_py')
             goal_command = sys.argv[1]
-            
             result = rldp5_robot_action_client(goal_command)
-            rospy.loginfo(result)
 
         else:
             rospy.loginfo("Provide the arguments properly!!!")
+
+        # result = rldp5_robot_action_client(goal_command)
+        # rospy.loginfo(result)
     except rospy.ROSInterruptException:
         print("program interrupted before completion", file=sys.stderr)

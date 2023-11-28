@@ -120,12 +120,13 @@ class RL_DP_5_ROS:
         rospy.loginfo("execute_cb starting...")
 
         var = isinstance(self.goal, str)
-        if var == True:
-            if self._as.is_preempt_requested():
+
+        if self._as.is_preempt_requested():
                 rospy.loginfo('%s: Preempted' % self._action_name)
                 self._as.set_preempted()
                 success = False
-                
+        if var == True:
+
             if self.goal.command == 'home_all':
                 self.robot.home_all()
                 self.send_feedback()
@@ -151,19 +152,32 @@ class RL_DP_5_ROS:
                 # Handle invalid commands here if needed            
                 print("Provide valid goal command from Client side")
                 success = False
-                
+
             if success:
                 self._result.success = self._feedback.status
                 rospy.loginfo('%s: Succeeded' % self._action_name)
-                self._as.set_succeeded(self._result)
+                self._as.set_succeeded(self._result.success)
                 rospy.loginfo("published goal...")
-                
+                                
             else:
                 rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
 
         else:
             print('going for floats')
-            
+            res = self.process_args(self.goal)
+            print("Desired Positions: ", res)
+            [self.robot.set_target_position(i, np.rad2deg(self.joint_state_position[i])) for i in range(5)]
+            self.send_feedback()
+
+            if success:
+                self._result.result = self._feedback.status
+                rospy.loginfo('%s: Succeeded' % self._action_name)
+                self._as.set_succeeded(self._result.result)
+                rospy.loginfo("published goal...")
+                                
+            else:
+                rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
+     
     def send_feedback(self):
         positions = []
         for i in range(5):
@@ -242,41 +256,4 @@ if __name__ == "__main__":
     except rospy.ROSInterruptException:
         pass
 
-"""        
-[ERROR] [1701086687.205950]: Exception in your execute callback: 'list' object has no attribute 'encode'
-Traceback (most recent call last):
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 289, in executeLoop
-    self.execute_callback(goal)
-  File "rl_dp_5_robot_con_ROS.py", line 139, in execute_cb
-    self._as.set_succeeded(self._result)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 162, in set_succeeded
-    self.current_goal.set_succeeded(result, text)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/server_goal_handle.py", line 195, in set_succeeded
-    self.action_server.publish_result(self.status_tracker.status, result)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/action_server.py", line 182, in publish_result
-    self.result_pub.publish(ar)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
-    self.impl.publish(data)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1066, in publish
-    serialize_message(b, self.seq, message)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/msg.py", line 152, in serialize_message
-    msg.serialize(b)
-  File "/home/inspire_igus/catkin_ws/devel/lib/python3/dist-packages/rldp5_msgs/msg/_rldp5_robotActionResult.py", line 156, in serialize
-    _x = _x.encode('utf-8')
-AttributeError: 'list' object has no attribute 'encode'
-
-[ERROR] [1701086687.207823]: To transition to an aborted state, the goal must be in a preempting or active state, it is currently in state: 3
-
-
-
-
-[ERROR] [1701086986.218492]: Exception in your execute callback: module 'dryve_D1' has no attribute 'set_shutdn'
-Traceback (most recent call last):
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 289, in executeLoop
-    self.execute_callback(goal)
-  File "rl_dp_5_robot_con_ROS.py", line 128, in execute_cb
-    dryve.set_shutdn()
-AttributeError: module 'dryve_D1' has no attribute 'set_shutdn'
-
-"""
 

@@ -1,10 +1,11 @@
 # Goal
 string command
-float64[] desired_position
+float64[5] desired_position
 
 ---
 # Result
 string success
+float64[5] result
 
 ---
 # Feedback
