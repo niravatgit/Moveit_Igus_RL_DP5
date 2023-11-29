@@ -166,6 +166,7 @@ class RL_DP_5_ROS:
                 print("Provide valid goal command from Client side")
                 success = False
 
+
         else:
             print("getting positional values")
             print(self.goal.command)
