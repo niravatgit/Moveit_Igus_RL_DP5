@@ -151,11 +151,11 @@ class RL_DP_5_ROS:
            rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
             
     def send_feedback(self):
-        positions = []
+        self.positions = []
         for i in range(5):
-            positions.append(self.robot.get_current_position(i))
+            self.positions.append(self.robot.get_current_position(i))
             
-        self._feedback.status = positions 
+        self._feedback.status = self.positions 
         rospy.loginfo("publishing feedback for axis:")
         self._as.publish_feedback(self._feedback)            
         return self._feedback       
