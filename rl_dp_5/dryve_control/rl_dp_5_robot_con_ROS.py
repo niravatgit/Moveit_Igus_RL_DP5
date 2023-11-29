@@ -151,7 +151,7 @@ class RL_DP_5_ROS:
                 self.robot.setOpen(i)
             self.send_feedback()
 
-        elif self.robot.goal.command == 'upright':
+        elif self.goal.command == 'upright':
             self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
             for i in range(5):
                 self.robot.set_target_position(i, self.upright_pos[i])
