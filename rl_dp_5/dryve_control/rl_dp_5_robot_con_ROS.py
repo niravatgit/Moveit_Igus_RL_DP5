@@ -6,6 +6,7 @@ import dryve_D1 as dryve
 import numpy as np
 import threading
 import actionlib
+import sys
 from rldp5_msgs.msg import  rldp5_robotAction, rldp5_robotFeedback, rldp5_robotResult
 
 speed = 5
@@ -122,45 +123,53 @@ class RL_DP_5_ROS:
         success = True
         rospy.loginfo("execute_cb starting...")
 
+        available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en', 'upright']
+
         if self._as.is_preempt_requested():
             rospy.loginfo('%s: Preempted' % self._action_name)
             self._as.set_preempted()
             success = False
-            
-        if self.goal.command == 'home_all':
-            self.robot.home_all()
-            self.send_feedback()
+
+        if self.goal.command in available_commands:          
+            if self.goal.command == 'home_all':
+                self.robot.home_all()
+                self.send_feedback()
                 
-        elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
-            joint_number = int(self.goal.command[6:])           
-            self.robot.home(joint_number-1)
-            self.send_feedback()
+            elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
+                joint_number = int(self.goal.command[6:])           
+                self.robot.home(joint_number-1)
+                self.send_feedback()
                 
-        elif self.goal.command == 'set_shutdn':
-            for i in range(5):
-                self.robot.setShutdn(i)
-            self.send_feedback()
+            elif self.goal.command == 'set_shutdn':
+                for i in range(5):
+                    self.robot.setShutdn(i)
+                self.send_feedback()
 
-        elif self.goal.command == 'set_swon':
-            for i in range(5):
-                self.robot.setSwon(i)
-            self.send_feedback()
+            elif self.goal.command == 'set_swon':
+                for i in range(5):
+                    self.robot.setSwon(i)
+                self.send_feedback()
 
-        elif self.goal.command == 'set_op_en':
-            for i in range(5):
-                self.robot.setOpen(i)
-            self.send_feedback()
+            elif self.goal.command == 'set_op_en':
+                for i in range(5):
+                    self.robot.setOpen(i)
+                self.send_feedback()
 
-        elif self.robot.goal.command == 'upright':
-            self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
-            for i in range(5):
-                self.robot.set_target_position(i, self.upright_pos[i])
-            self.send_feedback()
+            elif self.robot.goal.command == 'upright':
+                self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
+                for i in range(5):
+                    self.robot.set_target_position(i, self.upright_pos[i])
+                self.send_feedback()
+
+            else:
+                # Handle invalid commands here if needed            
+                print("Provide valid goal command from Client side")
+                success = False
 
         else:
-            # Handle invalid commands here if needed            
-            print("Provide valid goal command from Client side")
-            success = False
+            print("getting positional values")
+            print(self.goal.command)
+
             
         if success:
            self._result.success = self._feedback.status
