@@ -8,12 +8,15 @@ from rldp5_msgs.msg import rldp5_robotAction, rldp5_robotGoal
 def rldp5_robot_action_client(goal_command):
     # Creates the SimpleActionClient, passing the type of the action
     # (rldp5_robotAction) to the constructor.
+    print(goal_command)
     rospy.loginfo("client action...")
     client = actionlib.SimpleActionClient('RLDP5_Robot_Action', rldp5_robotAction)
 
     # Waits until the action server has started up and started
     # listening for goals.
     rospy.loginfo("Waiting for action server to come up...")
+    
+    print(goal_command)
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
@@ -23,10 +26,8 @@ def rldp5_robot_action_client(goal_command):
 
     rospy.loginfo("sending goal...")
     # Sends the goal to the action server.
-    print(goal_command, type(goal_command))
     goal = rldp5_robotGoal(goal_command)
-    print("Goal: ", goal, type(goal))
-    client.send_goal(goal_command)
+    client.send_goal(goal)
     rospy.loginfo("Goal has been sent to the action server.")
 
     # Waits for the server to finish performing the action.
@@ -42,22 +43,8 @@ if __name__ == '__main__':
         # publish and subscribe over ROS.
         if len(sys.argv) == 2:
             rospy.init_node('rldp5_Robot_ac_py')
-            # goal_command = sys.argv[1]
-            a = sys.argv[1]
-            available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en', 'upright']
-            if a in available_commands:
-                goal_command = rldp5_robotGoal(command=[a])
-
-            else:
-                print("as a", a)
-                n = len(sys.argv[1])
-                print("n: ", n) 
-                a = sys.argv[1][1:n-1]
-                print(a)
-                a = a.split(',') 
-                goal_command = rldp5_robotGoal(command=a)
-
-            print(goal_command)
+            goal_command = sys.argv[1]
+            
             result = rldp5_robot_action_client(goal_command)
             rospy.loginfo(result)
 
