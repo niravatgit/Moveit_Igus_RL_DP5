@@ -3,8 +3,8 @@ string command
 
 ---
 # Result
-string success
+float64[5] success
 
 ---
 # Feedback
-float64[] status
+float64[5] status
