@@ -41,6 +41,10 @@ class Rl_DP_5:
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
     
+    def setMode(self, axis, mode)
+    
+    def setModeAll(self, mode)
+
     def set_shutdn():
         return dryve.D1.set_shutdn()
     
