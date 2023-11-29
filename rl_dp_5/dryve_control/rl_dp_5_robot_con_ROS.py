@@ -254,29 +254,3 @@ if __name__ == "__main__":
     except rospy.ROSInterruptException:
         pass
         
-'''
-[ERROR] [1701239398.795959]: Exception in your execute callback: 'list' object has no attribute 'success'
-Traceback (most recent call last):
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 289, in executeLoop
-    self.execute_callback(goal)
-  File "rl_dp_5_robot_con_ROS.py", line 147, in execute_cb
-    self._as.set_succeeded(self._result.success)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 162, in set_succeeded
-    self.current_goal.set_succeeded(result, text)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/server_goal_handle.py", line 195, in set_succeeded
-    self.action_server.publish_result(self.status_tracker.status, result)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/action_server.py", line 182, in publish_result
-    self.result_pub.publish(ar)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
-    self.impl.publish(data)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1066, in publish
-    serialize_message(b, self.seq, message)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/msg.py", line 152, in serialize_message
-    msg.serialize(b)
-  File "/home/inspire_igus/catkin_ws/devel/lib/python3/dist-packages/rldp5_msgs/msg/_rldp5_robotActionResult.py", line 153, in serialize
-    buff.write(_get_struct_5d().pack(*self.result.success))
-AttributeError: 'list' object has no attribute 'success'
-
-[ERROR] [1701239398.797781]: To transition to an aborted state, the goal must be in a preempting or active state, it is currently in state: 3
-
-'''
