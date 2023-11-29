@@ -151,6 +151,12 @@ class RL_DP_5_ROS:
                 self.robot.setOpen(i)
             self.send_feedback()
 
+        elif self.robot.goal.command == 'upright':
+            self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
+            for i in range(5):
+                self.robot.set_target_position(i, self.upright_pos[i])
+            self.send_feedback()
+
         else:
             # Handle invalid commands here if needed            
             print("Provide valid goal command from Client side")
