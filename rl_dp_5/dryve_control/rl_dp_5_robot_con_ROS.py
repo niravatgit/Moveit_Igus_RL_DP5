@@ -210,6 +210,7 @@ class MoveItInterface:
             for i in range(5):
                 self.t = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])), daemon=True)
                 self.t.start()
+                self.t.join()
     
 if __name__ == "__main__":
     try:
