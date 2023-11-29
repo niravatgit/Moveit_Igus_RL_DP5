@@ -133,33 +133,33 @@ class RL_DP_5_ROS:
         if self.goal.command in available_commands:          
             if self.goal.command == 'home_all':
                 self.robot.home_all()
-                self.send_feedback()
+                # self.send_feedback()
                 
             elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
                 joint_number = int(self.goal.command[6:])           
                 self.robot.home(joint_number-1)
-                self.send_feedback()
+                # self.send_feedback()
                 
             elif self.goal.command == 'set_shutdn':
                 for i in range(5):
                     self.robot.setShutdn(i)
-                self.send_feedback()
+                # self.send_feedback()
 
             elif self.goal.command == 'set_swon':
                 for i in range(5):
                     self.robot.setSwon(i)
-                self.send_feedback()
+                # self.send_feedback()
 
             elif self.goal.command == 'set_op_en':
                 for i in range(5):
                     self.robot.setOpen(i)
-                self.send_feedback()
+                # self.send_feedback()
 
             elif self.goal.command == 'upright':
                 self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
                 for i in range(5):
                     self.robot.set_target_position(i, self.upright_pos[i])
-                self.send_feedback()
+                # self.send_feedback()
 
             else:
                 # Handle invalid commands here if needed            
@@ -187,15 +187,15 @@ class RL_DP_5_ROS:
         else:
            rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
             
-    def send_feedback(self):
-        self.positions = []
-        for i in range(5):
-            self.positions.append(self.robot.get_current_position(i))
+    # def send_feedback(self):
+        # self.positions = []
+        # for i in range(5):
+            # self.positions.append(self.robot.get_current_position(i))
             
-        self._result.suceess = self.positions 
-        rospy.loginfo("publishing feedback for axis:")
-        self._as.publish_feedback(self._feedback)            
-        return self._feedback       
+        # self._result.success = self.positions 
+        # rospy.loginfo("publishing feedback for axis:")
+        # self._as.publish_feedback(self._feedback)            
+        # return self._feedback       
       
 class MoveItInterface:
 
