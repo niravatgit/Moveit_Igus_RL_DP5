@@ -155,7 +155,7 @@ class RL_DP_5_ROS:
                     self.robot.setOpen(i)
                 self.send_feedback()
 
-            elif self.robot.goal.command == 'upright':
+            elif self.goal.command == 'upright':
                 self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
                 for i in range(5):
                     self.robot.set_target_position(i, self.upright_pos[i])
@@ -169,8 +169,14 @@ class RL_DP_5_ROS:
         else:
             print("getting positional values")
             print(self.goal.command)
+            self.position = [float(i) for i in self.goal.command]
+            pos_list = []
+            for i in self.position:
+                pos_list.append(i)
+            print(pos_list, type(pos_list))
 
-            
+            self.send_feedback
+
         if success:
            self._result.success = self._feedback.status
            rospy.loginfo('%s: Succeeded' % self._action_name)
@@ -185,7 +191,7 @@ class RL_DP_5_ROS:
         for i in range(5):
             self.positions.append(self.robot.get_current_position(i))
             
-        self._feedback.status = self.positions 
+        self._result.suceess = self.positions 
         rospy.loginfo("publishing feedback for axis:")
         self._as.publish_feedback(self._feedback)            
         return self._feedback       
