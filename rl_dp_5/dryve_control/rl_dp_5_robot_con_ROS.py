@@ -138,21 +138,25 @@ class RL_DP_5_ROS:
             elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
                 joint_number = int(self.goal.command[6:])           
                 self.robot.home(joint_number-1)
+                success = True
                 # self.send_feedback()
                 
             elif self.goal.command == 'set_shutdn':
                 for i in range(5):
                     self.robot.setShutdn(i)
+                    success = True
                 # self.send_feedback()
 
             elif self.goal.command == 'set_swon':
                 for i in range(5):
                     self.robot.setSwon(i)
+                    success = True
                 # self.send_feedback()
 
             elif self.goal.command == 'set_op_en':
                 for i in range(5):
                     self.robot.setOpen(i)
+                success = True
                 # self.send_feedback()
 
             elif self.goal.command == 'upright':
@@ -160,6 +164,7 @@ class RL_DP_5_ROS:
                 for i in range(5):
                     self.robot.set_target_position(i, self.upright_pos[i])
                 # self.send_feedback()
+                success = True
 
             else:
                 # Handle invalid commands here if needed            
@@ -179,7 +184,8 @@ class RL_DP_5_ROS:
             self.send_feedback
 
         if success:
-           self._result.success = self._feedback.status
+           self._result.success = True
+           print(type(self._result.success))
            rospy.loginfo('%s: Succeeded' % self._action_name)
            self._as.set_succeeded(self._result.success)
            rospy.loginfo("published goal...")

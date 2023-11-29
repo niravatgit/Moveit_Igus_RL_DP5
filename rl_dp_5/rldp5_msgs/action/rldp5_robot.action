@@ -3,7 +3,7 @@ string command
 
 ---
 # Result
-float64[5] success
+bool success
 
 ---
 # Feedback
