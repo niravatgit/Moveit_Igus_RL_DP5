@@ -155,11 +155,9 @@ class RL_DP_5_ROS:
         for i in range(5):
             positions.append(self.robot.get_current_position(i))
             
-            self._feedback.status = positions 
-            rospy.loginfo("publishing feedback for axis:")
-            self._as.publish_feedback(self._feedback)
-            rospy.loginfo("published feedback for axis: ") 
-            
+        self._feedback.status = positions 
+        rospy.loginfo("publishing feedback for axis:")
+        self._as.publish_feedback(self._feedback)            
         return self._feedback       
       
 class MoveItInterface:
@@ -217,45 +215,3 @@ if __name__ == "__main__":
 
     except rospy.ROSInterruptException:
         pass
-
-'''
-[ERROR] [1701237929.247004]: Exception in your execute callback: <class 'struct.error'>: 'pack expected 5 items for packing (got 1)' when writing 'b'This goal has been accepted by the simple action server''
-Traceback (most recent call last):
-  File "/home/inspire_igus/catkin_ws/devel/lib/python3/dist-packages/rldp5_msgs/msg/_rldp5_robotActionFeedback.py", line 153, in serialize
-    buff.write(_get_struct_5d().pack(*self.feedback.status))
-struct.error: pack expected 5 items for packing (got 1)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 882, in publish
-    self.impl.publish(data)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 1066, in publish
-    serialize_message(b, self.seq, message)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/msg.py", line 152, in serialize_message
-    msg.serialize(b)
-  File "/home/inspire_igus/catkin_ws/devel/lib/python3/dist-packages/rldp5_msgs/msg/_rldp5_robotActionFeedback.py", line 154, in serialize
-    except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
-  File "/opt/ros/noetic/lib/python3/dist-packages/genpy/message.py", line 395, in _check_types
-    raise SerializationError(str(exc))
-genpy.message.SerializationError: <class 'struct.error'>: 'pack expected 5 items for packing (got 1)' when writing 'b'This goal has been accepted by the simple action server''
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 289, in executeLoop
-    self.execute_callback(goal)
-  File "rl_dp_5_robot_con_ROS.py", line 125, in execute_cb
-    self.send_feedback()
-  File "rl_dp_5_robot_con_ROS.py", line 160, in send_feedback
-    self._as.publish_feedback(self._feedback)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/simple_action_server.py", line 175, in publish_feedback
-    self.current_goal.publish_feedback(feedback)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/server_goal_handle.py", line 213, in publish_feedback
-    self.action_server.publish_feedback(self.status_tracker.status, feedback)
-  File "/opt/ros/noetic/lib/python3/dist-packages/actionlib/action_server.py", line 195, in publish_feedback
-    self.feedback_pub.publish(af)
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 886, in publish
-    raise ROSSerializationException(str(e))
-rospy.exceptions.ROSSerializationException: <class 'struct.error'>: 'pack expected 5 items for packing (got 1)' when writing 'b'This goal has been accepted by the simple action server''
-'''
