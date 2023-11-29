@@ -6,7 +6,7 @@ import dryve_D1 as dryve
 import numpy as np
 import threading
 import actionlib
-from rldp5_msgs.msg import  rldp5_robotAction, _rldp5_robotGoal, rldp5_robotFeedback, rldp5_robotResult
+from rldp5_msgs.msg import  rldp5_robotAction, rldp5_robotFeedback, rldp5_robotResult
 
 speed = 5
 accel = 100
@@ -40,6 +40,18 @@ class Rl_DP_5:
 
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
+    
+    def setMode(self, axis, mode):
+        return self.axis_controller[axis].set_mode(mode)
+    
+    def setSwon(self, axis):
+        return self.axis_controller[axis].set_swon()
+    
+    def setOpen(self, axis):
+        return self.axis_controller[axis].set_op_en()
+    
+    def setShutDn(self, axis):
+        return self.axis_controller[axis].set_shutdn()
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 #following are the fucntions that we want to expose through ROS
@@ -124,18 +136,21 @@ class RL_DP_5_ROS:
             self.robot.home(joint_number-1)
             self.send_feedback()
                 
-        # elif self.goal.command == 'set_shutdn':
-        #     dryve.set_shutdn()
-        #     self.send_feedback()
+        elif self.goal.command == 'set_shutdn':
+            for i in range(5):
+                self.robot.setShutdn(i)
+            self.send_feedback()
 
-        # elif self.goal.command == 'set_swon':
-        #     dryve.set_swon()
-        #     self.send_feedback()
+        elif self.goal.command == 'set_swon':
+            for i in range(5):
+                self.robot.setSwon(i)
+            self.send_feedback()
 
-        # elif self.goal.command == 'set_op_en':
-        #     dryve.set_op_en()
-        #     self.send_feedback()
-                
+        elif self.goal.command == 'set_op_en':
+            for i in range(5):
+                self.robot.setOpen(i)
+            self.send_feedback()
+
         else:
             # Handle invalid commands here if needed            
             print("Provide valid goal command from Client side")
