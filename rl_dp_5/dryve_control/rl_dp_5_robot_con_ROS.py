@@ -163,8 +163,6 @@ class RL_DP_5_ROS:
             success = False
 
         # Should check with client
-        
-
         for i in range(5):
             self.robot.set_target_position(i, self.goal[i])
 
