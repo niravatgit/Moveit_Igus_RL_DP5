@@ -11,7 +11,7 @@ from rldp5_msgs.msg import home_allAction, home_allFeedback, home_allResult
 from rldp5_msgs.msg import homeAction, homeFeedback, homeResult
 from rldp5_msgs.msg import set_des_posAction, set_des_posFeedback, set_des_posResult
 
-speed = 5
+speed = 10
 accel = 100
 homespeed = 5
 homeaccel = 100
@@ -118,7 +118,7 @@ class RL_DP_5_ROS:
             self._as_home_all.set_preempted()
             success = False
 
-        print("self.robot.home_all()")
+        self.robot.home_all()
         self.send_feedback(self._as_home_all, self.feedback_home_all, self.result_home_all)
         self.check_result(self._as_home_all, self.result_home_all, success)
 
@@ -139,9 +139,8 @@ class RL_DP_5_ROS:
             self._as_home_all.set_preempted()
             success = False
 
-        self.joint_num = self.goal
-        if 0 < self.joint_num <=5:
-            print("self.robot.home(joint_num)", self.joint_num)
+        if 0 < self.goal <=5:
+            self.robot.home(self.goal - 1)
         else:
             rospy.loginfo("Provide proper joint index")
 
@@ -164,10 +163,10 @@ class RL_DP_5_ROS:
             success = False
 
         # Should check with client
-        pos_list = [1, 2, 3, 4, 5]
+        
 
         for i in range(5):
-            print("self.robot.set_target_position(i, pos_list[i])", self.goal[i])
+            self.robot.set_target_position(i, self.goal[i])
 
         self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
         self.check_result(self._as_joint_pos, self.result_joint_pos, success)
@@ -180,11 +179,11 @@ class RL_DP_5_ROS:
 
         self.pos = [1,2,3,4,5]
         for i in range(5):
-            #self.positions.append(self.robot.get_current_position(i))
-            print('self.robot.get_current_position(i)', self.pos[i])
+            self.positions.append(self.robot.get_current_position(i))
+            #print('self.robot.get_current_position(i)', self.pos[i])
 
-        print("Positions: ", self.pos)
-        self.fb.status = self.pos 
+        print("Positions: ", self.positions)
+        self.fb.status = self.positions 
         print("Feed Back: ", self.fb.status)
         self.actionServer.publish_feedback(self.fb)
 
