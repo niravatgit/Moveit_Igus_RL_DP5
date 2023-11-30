@@ -7,7 +7,9 @@ import numpy as np
 import threading
 import actionlib
 import sys
-from rldp5_msgs.msg import  rldp5_robotAction, rldp5_robotFeedback, rldp5_robotResult
+from rldp5_msgs.msg import home_allAction, home_allFeedback, home_allResult
+from rldp5_msgs.msg import homeAction, homeFeedback, homeResult
+from rldp5_msgs.msg import set_des_posAction, set_des_posFeedback, set_des_posResult
 
 speed = 5
 accel = 100
@@ -76,133 +78,130 @@ class Rl_DP_5:
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RL_DP_5_ROS:
-    """
-    Class representing the RLDP5 ROS Action Server.
-
-    This class handles the execution of ROS actions for the RLDP5 robot.
-
-    Attributes:
-    - _feedback (rldp5_robotFeedback): Feedback object for the action.
-    - _result (rldp5_robotResult): Result object for the action.
-    - robot: Instance of the RLDP5 robot.
-    - _action_name (str): Name of the ROS action server.
-    - _as (SimpleActionServer): SimpleActionServer for handling ROS actions.
-    - goal (rldp5_robotGoal): Goal received from the action client.
-    """
-
-    _feedback = rldp5_robotFeedback()
-    _result = rldp5_robotResult()
 
     def __init__(self, robot):
-        """
-        Initializes the RLDP5ROS instance.
-
-        Args:
-        - robot: Instance of the RLDP5 robot.
-        - name (str): Name of the ROS action server.
-        """
         self.robot = robot
         self._action_name = rospy.get_name()
-        rospy.loginfo("Action server starting...")
+        rospy.loginfo("Multi Action server starting...")
         
-        # self._as = actionlib.SimpleActionServer(self._action_name, rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
-        self._as = actionlib.SimpleActionServer('RLDP5_Robot_Action', rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
+        # self._as = actionlib.SimpleActionServer('RLDP5_Robot_Action', rldp5_robotAction, execute_cb=self.execute_cb, auto_start=False)
+        # Home All Action Server
+        self._as_home_all = actionlib.SimpleActionServer('home_all_action', home_allAction, execute_cb=self.home_all_execute_cb, auto_start=False)
+
+        # Home Joint Action Server
+        self._as_home_joint = actionlib.SimpleActionServer('home_joint_action', homeAction, execute_cb=self.home_execute_cb, auto_start=False)
+
+        # Joint States Action Server
+        self._as_joint_pos = actionlib.SimpleActionServer('joint_positions_action', set_des_posAction, execute_cb=self.joint_state_execute_cb, auto_start=False)
+
         # Start the action server.
-        self._as.start()
-        rospy.loginfo("Action server started...")
+        self._as_home_all.start()
+        self._as_home_joint.start()
+        self._as_joint_pos.start()
 
-    def execute_cb(self, goal):
-        """
-        Callback function for executing the ROS action.
+        rospy.loginfo("Multiple Action servers started...")
 
-        Args:
-        - goal (rldp5_robotGoal): Goal received from the action client.
-        """
-        rospy.loginfo("execute_cb starting...")
+    def home_all_execute_cb(self, goal):
+
+        self.feedback_home_all = home_allFeedback()
+        self.result_home_all = home_allResult()
+
+        rospy.loginfo("Home all execute_cb starting...")
+
         self.goal = goal
         success = True
         rospy.loginfo("execute_cb starting...")
+        print(self.result_home_all)
 
-        available_commands = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'home_all', 'set_shutdn', 'set_swon', 'set_op_en', 'upright']
-
-        if self._as.is_preempt_requested():
+        if self._as_home_all.is_preempt_requested():
             rospy.loginfo('%s: Preempted' % self._action_name)
-            self._as.set_preempted()
+            self._as_home_all.set_preempted()
             success = False
 
-        if self.goal.command in available_commands:          
-            if self.goal.command == 'home_all':
-                self.robot.home_all()
-                # self.send_feedback()
-                
-            elif self.goal.command.startswith('joint_') and self.goal.command[6:].isdigit():
-                joint_number = int(self.goal.command[6:])           
-                self.robot.home(joint_number-1)
-                success = True
-                # self.send_feedback()
-                
-            elif self.goal.command == 'set_shutdn':
-                for i in range(5):
-                    self.robot.setShutdn(i)
-                    success = True
-                # self.send_feedback()
+        print("self.robot.home_all()")
+        self.send_feedback(self._as_home_all, self.feedback_home_all, self.result_home_all)
+        self.check_result(self._as_home_all, self.result_home_all, success)
 
-            elif self.goal.command == 'set_swon':
-                for i in range(5):
-                    self.robot.setSwon(i)
-                    success = True
-                # self.send_feedback()
 
-            elif self.goal.command == 'set_op_en':
-                for i in range(5):
-                    self.robot.setOpen(i)
-                success = True
-                # self.send_feedback()
+    def home_execute_cb(self, goal):
 
-            elif self.goal.command == 'upright':
-                self.upright_pos = [0.0, 0.0, 0.0, 0.0, 0.0]
-                for i in range(5):
-                    self.robot.set_target_position(i, self.upright_pos[i])
-                # self.send_feedback()
-                success = True
+        self.feedback_home = homeFeedback()
+        self.result_home = homeResult()
 
-            else:
-                # Handle invalid commands here if needed            
-                print("Provide valid goal command from Client side")
-                success = False
+        rospy.loginfo("Home Joint action execute_cb starting...")
+        self.goal = goal.joint_index
+        print('self.goal:', self.goal)
+        success = True
+        rospy.loginfo("Home Joint action execute_cb starting...")
 
+        if self._as_home_joint.is_preempt_requested():
+            rospy.loginfo('%s: Preempted' % self._action_name)
+            self._as_home_all.set_preempted()
+            success = False
+
+        self.joint_num = self.goal
+        if 0 < self.joint_num <=5:
+            print("self.robot.home(joint_num)", self.joint_num)
+        else:
+            rospy.loginfo("Provide proper joint index")
+
+        self.send_feedback(self._as_home_joint, self.feedback_home, self.result_home)
+        self.check_result(self._as_home_joint, self.result_home, success)
+
+    def joint_state_execute_cb(self, goal):
+
+        self.feedback_joint_pos = set_des_posFeedback()
+        self.result_joint_pos = set_des_posResult()
+
+        rospy.loginfo("Joint States action execute_cb starting...")
+        self.goal = goal.joint_states
+        success = True
+        rospy.loginfo("Joint States action execute_cb starting...")
+
+        if self._as_joint_pos.is_preempt_requested():
+            rospy.loginfo('%s: Preempted' % self._action_name)
+            self._as_home_all.set_preempted()
+            success = False
+
+        # Should check with client
+        pos_list = [1, 2, 3, 4, 5]
+
+        for i in range(5):
+            print("self.robot.set_target_position(i, pos_list[i])", self.goal[i])
+
+        self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
+        self.check_result(self._as_joint_pos, self.result_joint_pos, success)
+
+    def send_feedback(self, actionServer, fb, res):       
+        self.positions = []
+        self.fb = fb
+        self.res = res
+        self.actionServer = actionServer
+
+        self.pos = [1,2,3,4,5]
+        for i in range(5):
+            #self.positions.append(self.robot.get_current_position(i))
+            print('self.robot.get_current_position(i)', self.pos[i])
+
+        print("Positions: ", self.pos)
+        self.fb.status = self.pos 
+        print("Feed Back: ", self.fb.status)
+        self.actionServer.publish_feedback(self.fb)
+
+    def check_result(self, actionServer, res, suc):
+        self.res = res
+        self.actionServer = actionServer
+        self.suc = suc
+
+        if self.suc:
+            self.res.result_message = "%s goal succeeded" %self._action_name
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            self.actionServer.set_succeeded(self.res)
+            rospy.loginfo("Published %s goal" %self._action_name)
 
         else:
-            print("getting positional values")
-            print(self.goal.command)
-            self.position = [float(i) for i in self.goal.command]
-            pos_list = []
-            for i in self.position:
-                pos_list.append(i)
-            print(pos_list, type(pos_list))
-
-            self.send_feedback
-
-        if success:
-           self._result.success = True
-           print(type(self._result.success))
-           rospy.loginfo('%s: Succeeded' % self._action_name)
-           self._as.set_succeeded(self._result.success)
-           rospy.loginfo("published goal...")
-           
-        else:
-           rospy.loginfo("%s: Aborted - Goal is not in an active state" %self._action_name)
-            
-    # def send_feedback(self):
-        # self.positions = []
-        # for i in range(5):
-            # self.positions.append(self.robot.get_current_position(i))
-            
-        # self._result.success = self.positions 
-        # rospy.loginfo("publishing feedback for axis:")
-        # self._as.publish_feedback(self._feedback)            
-        # return self._feedback       
-      
+            rospy.loginfo("%s: Aborted - Goal is not in an active state" % self._action_name)
+     
 class MoveItInterface:
 
     def __init__(self, robot):

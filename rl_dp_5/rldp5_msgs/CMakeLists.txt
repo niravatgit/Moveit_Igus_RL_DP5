@@ -64,6 +64,9 @@ find_package(catkin REQUIRED COMPONENTS
 add_action_files(
   FILES
   rldp5_robot.action
+  home_all.action
+  home.action
+  set_des_pos.action
 )
 
 

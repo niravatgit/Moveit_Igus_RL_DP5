@@ -1,5 +1,5 @@
 # Goal
-string command
+float64[5] joint_states
 
 ---
 # Result
