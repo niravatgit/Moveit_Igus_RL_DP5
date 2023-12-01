@@ -61,7 +61,6 @@ class ROS_GUI_Interface:
     def __init__(self, robot):
         self.robot = robot
         self.joint_state = JointState()
-        self.joint_state_position = []
 
         # Initialize ROS node
         rospy.init_node('ros_gui_node', anonymous=True)
@@ -71,8 +70,7 @@ class ROS_GUI_Interface:
 
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-
-        # ROS Subscriber for receiving joint states
+    
         rospy.Subscriber('/joint_states', JointState, self.callback_fn, queue_size=1)
 
     def callback_fn(self, data):
@@ -87,28 +85,29 @@ class ROS_GUI_Interface:
         print("homing all")
         self.robot.home_all()
         for i in range(5):
-            self.joint_state_position[i] = self.robot.get_current_position(i)
+            self.joint_state.position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def start_homing(self, axis):
         print(f"homing joint{axis+1}")
         self.robot.home(axis)
         for i in range(5):
-            self.joint_state_position[i] = self.robot.get_current_position(i)
+            self.joint_state.position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def jog(self, event, axis, direction):
-        self.robot.set_target_position(axis, self.joint_state_position[axis] + direction * 1)
+        #print(self.joint_state.position
+        self.robot.set_target_position(axis, self.joint_state.position[axis] + direction * 1)
         print('self.joint_state.position:', list(self.joint_state.position))
         for i in range(5):
-            self.joint_state_position[i] = self.robot.get_current_position(i)
+            self.joint_state.position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def stop_jogging(self, event, axis):
         print(f"Stopped holding Axis {axis + 1}")
-        self.robot.setTargetVelocity(axis, 0.0)
+        self.robot.setTargetVelocity(axis, 0)
         for i in range(5):
-            self.joint_state_position[i] = self.robot.get_current_position(i)
+            self.joint_state.position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
 class ClickAndHoldApp:
@@ -134,8 +133,8 @@ class ClickAndHoldApp:
         homing_all_button = tk.Button(frame, text="Homing All", command=self.rgi.start_homing_all)
         homing_all_button.grid(row=6, column=0, columnspan=6, pady=20)
 
-        #self.update_timer()
-
+        self.update_timer()
+        
     def update_timer(self):
         for axis, label in zip(self.rgi.robot.axis_controller, self.position_labels):
             position = "{:.2f}".format(axis.getPosition())

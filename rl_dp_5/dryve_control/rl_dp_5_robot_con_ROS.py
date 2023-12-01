@@ -11,7 +11,7 @@ from rldp5_msgs.msg import home_allAction, home_allFeedback, home_allResult
 from rldp5_msgs.msg import homeAction, homeFeedback, homeResult
 from rldp5_msgs.msg import set_des_posAction, set_des_posFeedback, set_des_posResult
 
-speed = 10
+speed = 5
 accel = 100
 homespeed = 5
 homeaccel = 100
