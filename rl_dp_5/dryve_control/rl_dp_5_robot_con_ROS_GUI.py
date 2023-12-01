@@ -4,10 +4,10 @@ import numpy as np
 import dryve_D1 as dryve
 import rospy
 
-speed = 5
-accel = 100
-homespeed = 5
-homeaccel = 100
+speed=5
+accel=100
+homespeed=5
+homeaccel=100
 
 root = tk.Tk()
 root.title("Click and Hold")
@@ -19,6 +19,8 @@ heading_label = tk.Label(frame, text="Axis Control Panel", font=("Helvetica", 16
 heading_label.grid(row=0, column=0, columnspan=6, pady=(0, 20))
 
 position_labels = []
+
+# Create labels for displaying positions for each axis
 for axis in range(5):
     position_label = tk.Label(frame, text=f"Axis {axis + 1} Position: 0.00")
     position_label.grid(row=axis + 1, column=0, columnspan=3)
@@ -56,8 +58,8 @@ class D1AxisController:
             self.axis_controller[axis].targetVelocity(velocity)
 
 class ROS_GUI_Interface:
-    def __init__(self):
-        #self.robot = robot
+    def __init__(self, robot):
+        self.robot = robot
         self.joint_state = JointState()
         self.joint_state_position = []
 
@@ -83,39 +85,31 @@ class ROS_GUI_Interface:
 
     def start_homing_all(self):
         print("homing all")
-        home_pos = [0.0, 0.0, -90.0, -30.0, 0.0]
+        self.robot.home_all()
         for i in range(5):
-            self.joint_state_position[i] = home_pos[i]
+            self.joint_state_position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def start_homing(self, axis):
-        home_pos = [0.0, 0.0, -90.0, -30.0, 0.0]
         print(f"homing joint{axis+1}")
-        self.joint_state_position[axis+1] = home_pos[axis+1]
+        self.robot.home(axis)
+        for i in range(5):
+            self.joint_state_position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def jog(self, event, axis, direction):
-
-        # Implement your jog_plus logic here
-        print("Joint state position: ", np.deg2rad(self.joint_state_position))
-        print(f"jogging joint {axis+1}, Current Position: {self.joint_state_position[axis]}")
-        print("Direction jogging:", direction)
-        # Remove the line below
-        self.current_position = [0.0, 0.0, 0.0, 0.0, 0.0]
-        self.desired_position = [0.0, 0.0, 0.0, 0.0, 0.0]
-
-        # Update the desired position directly
-        self.current_position = self.joint_state_position[axis]
-        self.desired_position[axis] = self.current_position + direction * 1
-        print("desired position:", self.desired_position)
-        self.joint_state_position[axis] = self.desired_position[axis]
-
-        #self.joint_state_position = list(self.joint_state_position)
+        self.robot.set_target_position(axis, self.joint_state_position[axis] + direction * 1)
         print('self.joint_state.position:', list(self.joint_state.position))
+        for i in range(5):
+            self.joint_state_position[i] = self.robot.get_current_position(i)
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def stop_jogging(self, event, axis):
         print(f"Stopped holding Axis {axis + 1}")
+        self.robot.setTargetVelocity(axis, 0.0)
+        for i in range(5):
+            self.joint_state_position[i] = self.robot.get_current_position(i)
+        self.fake_controller_joint_states_pub.publish(self.joint_state)
 
 class ClickAndHoldApp:
     def __init__(self, root, ros_gui_interface, position_labels):
@@ -151,7 +145,7 @@ class ClickAndHoldApp:
 
 if __name__ == "__main__":
 
-    #robot = D1AxisController()
-    ros_gui_interface = ROS_GUI_Interface()
+    robot = D1AxisController()
+    ros_gui_interface = ROS_GUI_Interface(robot)
     app = ClickAndHoldApp(root, ros_gui_interface, position_labels)
     root.mainloop()
