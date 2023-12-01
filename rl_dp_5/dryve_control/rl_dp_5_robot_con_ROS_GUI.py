@@ -148,3 +148,29 @@ if __name__ == "__main__":
     ros_gui_interface = ROS_GUI_Interface(robot)
     app = ClickAndHoldApp(root, ros_gui_interface, position_labels)
     root.mainloop()
+    
+    
+    
+"""
+self.joint_state.position: [0.0, 0.0, 0.0, 0.0, 0.0]
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/tkinter/__init__.py", line 1892, in __call__
+    return self.func(*args)
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 125, in <lambda>
+    jog_plus_button.bind("<ButtonPress-1>", lambda event, axis=axis: self.rgi.jog(event, axis, 1))
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 103, in jog
+    self.joint_state.position[i] = self.robot.get_current_position(i)
+TypeError: 'tuple' object does not support item assignment
+Stopped holding Axis 1
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/tkinter/__init__.py", line 1892, in __call__
+    return self.func(*args)
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 126, in <lambda>
+    jog_plus_button.bind("<ButtonRelease-1>", lambda event, axis=axis: self.rgi.stop_jogging(event, axis))
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 110, in stop_jogging
+    self.joint_state.position[i] = self.robot.get_current_position(i)
+TypeError: 'tuple' object does not support item assignment
+inspire_igus@inspireigus:~/catkin_ws/src/Moveit_Igus_RL_DP5/r
+"""
