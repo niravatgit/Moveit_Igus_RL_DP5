@@ -72,7 +72,7 @@ class Rl_DP_5:
 	#
 	#start ROS Node code here
 	#create all poublishedrs, subsribers and action commands of ROS baesd interface
-        #Action commands: 1: home <iunt>, home_all, setmode <int>, set_swon, set_open, set_shtdown
+        #Action commands: 1: home <iunt>, home_all, setmode <int>, set_swon, set_open, set_shtdown [done]
 	#publishers: status <can iclude a lot of interegers we will discuss later>
 	#subsribers: 
 #-----------------------------------------------------------------------------------------------------------------------------------
