@@ -71,10 +71,15 @@ class ClickAndHoldApp:
         self.update_timer()
 
     def callback_fn(self, data):
+        print("Subscribed to the /joint_states topic")
+        self.joint_state.position = list(data.position)
+        return self.joint_state.position
+    
+    def publish_joint_positions(self):
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        self.joint_state.position = list(data.position)
-        return self.fake_controller_joint_states_pub.publish(self.joint_state)
+        self.joint_state.position = [axis.getPosition() for axis in self.axis_controller.axes]
+        self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def jog(self, event, axis, direction):
         cur_position = self.axis_controller.axes[axis].getPosition()
@@ -82,24 +87,24 @@ class ClickAndHoldApp:
         desired_position = cur_position + direction*1
         self.axis_controller.axes[axis].profile_pos_mode(desired_position, 5,50)
         print(f"Started jogging axis ", axis, "From current postion=", cur_position, " To desired position = ", desired_position)
-        #self.sub_fn()
+        self.publish_joint_positions()
 
     def stop_jogging(self, event, axis):
         self.axis_controller.setTargetVelocity(axis, 0)
         print(f"Stopped holding Axis {axis + 1}")
-        #self.sub_fn()
+        self.publish_joint_positions()
 
     def start_individual_homing(self, axis):
         print(f"Started homing Axis {axis + 1}")
         self.axis_controller.home(axis)
-        #self.sub_fn()
+        self.publish_joint_positions()
 
     def start_homing(self):
         if not self.homing_in_progress:
             self.homing_in_progress = True
             self.axis_controller.home_all()
         self.homing_in_progress = False
-            #self.sub_fn()
+        self.publish_joint_positions()
 
     def update_timer(self):
         for axis, label in zip(self.axis_controller.axes, self.position_labels):
