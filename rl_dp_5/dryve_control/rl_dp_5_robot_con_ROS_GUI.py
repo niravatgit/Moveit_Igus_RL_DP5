@@ -71,14 +71,14 @@ class ClickAndHoldApp:
         self.update_timer()
 
     def callback_fn(self, data):
-        print("Subscribed to the /joint_states topic")
         self.joint_state.position = list(data.position)
         return self.joint_state.position
     
     def publish_joint_positions(self):
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        self.joint_state.position = [np.rad2deg(axis.getPosition()) for axis in self.axis_controller.axes]
+        self.joint_state.position = [np.deg2rad(axis.getPosition()) for axis in self.axis_controller.axes]
+        print(f"Joint Posiions at {rospy.Time.now()}: {self.joint_state.position}")
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def jog(self, event, axis, direction):
@@ -105,7 +105,7 @@ class ClickAndHoldApp:
             self.axis_controller.home_all()
         self.homing_in_progress = False
         self.publish_joint_positions()
-
+        
     def update_timer(self):
         for axis, label in zip(self.axis_controller.axes, self.position_labels):
             position = "{:.2f}".format(axis.getPosition())
