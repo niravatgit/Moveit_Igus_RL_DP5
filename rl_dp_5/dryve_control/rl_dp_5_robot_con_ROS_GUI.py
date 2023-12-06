@@ -38,17 +38,14 @@ class ClickAndHoldApp:
         self.position_labels = position_labels
         self.axis_controller = axis_controller
 
-        rospy.init_node('_node', anonymous=True)
+        rospy.init_node('ros_gui_node', anonymous=True)
 
         # Publisher to simulate the robot pose in MoveIt based on the current position of the real robot
         self.fake_controller_joint_states_pub = rospy.Publisher('/move_group/fake_controller_joint_states', JointState, queue_size=1)
 
         self.joint_state = JointState()
-        self.joint_state.header.stamp = rospy.Time.now()
-        self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        self.joint_state.position = list([np.deg2rad(self.axis_controller.get_current_position(i)) for i in range(5)])
-        self.fake_controller_joint_states_pub.publish(self.joint_state)
-
+        rospy.Subscriber('/joint_states', JointState, self.callback_fn, queue_size=1)
+        
         print("Created ROS GUI interface")
 
         for axis in range(5): 
@@ -70,12 +67,11 @@ class ClickAndHoldApp:
 
         self.update_timer()
 
-    def sub_fn(self):
-        rospy.Subscriber('/joint_states', JointState, self.callback_fn, queue_size=1)
-
     def callback_fn(self, data):
-        self.joint_state_position = list(data.position)
-        self.fake_controller_joint_states_pub.publish(self.joint_state_position)
+        self.joint_state.header.stamp = rospy.Time.now()
+        self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
+        self.joint_state.position = list(data.position)
+        return self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def jog(self, event, axis, direction):
         cur_position = self.axis_controller.axes[axis].getPosition()
@@ -83,25 +79,24 @@ class ClickAndHoldApp:
         desired_position = cur_position + direction*1
         self.axis_controller.axes[axis].profile_pos_mode(desired_position, 5,50)
         print(f"Started jogging axis ", axis, "From current postion=", cur_position, " To desired position = ", desired_position)
-
-        self.sub_fun()
+        #self.sub_fn()
 
     def stop_jogging(self, event, axis):
         self.axis_controller.setTargetVelocity(axis, 0)
         print(f"Stopped holding Axis {axis + 1}")
-        self.sub_fun()
+        #self.sub_fn()
 
     def start_individual_homing(self, axis):
         print(f"Started homing Axis {axis + 1}")
         self.axis_controller.home(axis)
-        self.sub_fn()
+        #self.sub_fn()
 
     def start_homing(self):
         for axis in self.axis_controller.axes:
             print(f"Started homing {axis.Axis}")
             # axis.homing(homespeed, homeaccel)
             self.axis_controller.home_all()
-            self.sub_fun()
+            #self.sub_fn()
 
     def update_timer(self):
         for axis, label in zip(self.axis_controller.axes, self.position_labels):
@@ -132,21 +127,20 @@ class D1AxisController:
             self.axes[axis].profile_pos_mode(desired_position, speed, accel)
 
     def get_current_position(self, axis):
-        return self.axis_controller[axis].getPosition()
+        return self.axes[axis].getPosition()
     
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
-        self.axis_controller[axis].homing(homespeed, homeaccel)
+        self.axes[axis].homing(homespeed, homeaccel)
 
     def home_all(self):
         for axis in self.axes:
-            print(f"Started homing {axis.Axis}")
+            print(f"Started homing at robot level {axis.Axis}")
             axis.homing(homespeed, homeaccel)
 
 
 if __name__ == "__main__":
-    robot = D1AxisController()
     print("Created GUI")
-    app = ClickAndHoldApp(root, position_labels, robot)
+    app = ClickAndHoldApp(root, position_labels, D1AxisController())
     # app = ClickAndHoldApp(root, D1AxisController(), position_labels)
     root.mainloop()
