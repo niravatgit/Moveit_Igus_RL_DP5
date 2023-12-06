@@ -144,3 +144,17 @@ if __name__ == "__main__":
     app = ClickAndHoldApp(root, position_labels, D1AxisController())
     # app = ClickAndHoldApp(root, D1AxisController(), position_labels)
     root.mainloop()
+    
+ '''
+ Created GUI
+Created dryve interfaces
+Created ROS GUI interface
+Traceback (most recent call last):
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 144, in <module>
+    app = ClickAndHoldApp(root, position_labels, D1AxisController())
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 68, in __init__
+    self.update_timer()
+  File "rl_dp_5_robot_con_ROS_GUI.py", line 103, in update_timer
+    position = "{:.2f}".format(axis)
+TypeError: unsupported format string passed to D1.__format__
+'''
