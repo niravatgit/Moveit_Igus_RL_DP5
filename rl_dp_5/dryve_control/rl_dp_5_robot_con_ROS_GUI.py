@@ -78,7 +78,7 @@ class ClickAndHoldApp:
     def publish_joint_positions(self):
         self.joint_state.header.stamp = rospy.Time.now()
         self.joint_state.name = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5"]
-        self.joint_state.position = [axis.getPosition() for axis in self.axis_controller.axes]
+        self.joint_state.position = [np.rad2deg(axis.getPosition()) for axis in self.axis_controller.axes]
         self.fake_controller_joint_states_pub.publish(self.joint_state)
 
     def jog(self, event, axis, direction):
