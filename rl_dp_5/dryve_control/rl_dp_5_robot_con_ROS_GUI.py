@@ -37,6 +37,9 @@ class ClickAndHoldApp:
         self.root = root
         self.position_labels = position_labels
         self.axis_controller = axis_controller
+        self.homing_in_progress = False
+        
+        rospy.loginfo("Axis COntroller:", self.axis_controller)
 
         rospy.init_node('ros_gui_node', anonymous=True)
 
@@ -92,15 +95,14 @@ class ClickAndHoldApp:
         #self.sub_fn()
 
     def start_homing(self):
-        for axis in self.axis_controller.axes:
-            print(f"Started homing {axis.Axis}")
-            # axis.homing(homespeed, homeaccel)
+        if not self.homing_in_progress:
+            self.homing_in_progress = True
             self.axis_controller.home_all()
+        self.homing_in_progress = False
             #self.sub_fn()
 
     def update_timer(self):
         for axis, label in zip(self.axis_controller.axes, self.position_labels):
-            position = "{:.2f}".format(axis)
             position = "{:.2f}".format(axis.getPosition())
             label.config(text=f"{axis.Axis} Position: {position}")
         self.root.after(5, self.update_timer)
@@ -132,29 +134,15 @@ class D1AxisController:
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
         self.axes[axis].homing(homespeed, homeaccel)
-
+        
     def home_all(self):
         for axis in self.axes:
             print(f"Started homing at robot level {axis.Axis}")
             axis.homing(homespeed, homeaccel)
-
 
 if __name__ == "__main__":
     print("Created GUI")
     app = ClickAndHoldApp(root, position_labels, D1AxisController())
     # app = ClickAndHoldApp(root, D1AxisController(), position_labels)
     root.mainloop()
-    
- '''
- Created GUI
-Created dryve interfaces
-Created ROS GUI interface
-Traceback (most recent call last):
-  File "rl_dp_5_robot_con_ROS_GUI.py", line 144, in <module>
-    app = ClickAndHoldApp(root, position_labels, D1AxisController())
-  File "rl_dp_5_robot_con_ROS_GUI.py", line 68, in __init__
-    self.update_timer()
-  File "rl_dp_5_robot_con_ROS_GUI.py", line 103, in update_timer
-    position = "{:.2f}".format(axis)
-TypeError: unsupported format string passed to D1.__format__
-'''
+
