@@ -4,9 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
+        - /TF1/Tree1
       Splitter Ratio: 0.5
-    Tree Height: 215
+    Tree Height: 394
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -14,6 +14,8 @@ Panels:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
+  - Class: royale_in_ros/RoyaleControl
+    Name: RoyaleControl
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -205,6 +207,99 @@ Visualization Manager:
         Show Robot Visual: true
       Value: true
       Velocity_Scaling_Factor: 0.1
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: z
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic: /royale_cam0/point_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /royale_cam0/gray_image
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Image
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
+    - Class: rviz/TF
+      Enabled: false
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        {}
+      Update Interval: 0
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic: /royale_cam0/segmented_point_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /normals_markers
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -221,7 +316,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2
+      Distance: 2.897392749786377
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -229,33 +324,37 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: -0.12029226124286652
-        Y: 0.13879764080047607
-        Z: 0.47082939743995667
+        X: 0.3929661214351654
+        Y: 0.15406516194343567
+        Z: 0.37478435039520264
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5750000476837158
+      Pitch: 0.2750001847743988
       Target Frame: world
-      Yaw: 1.1867643594741821
+      Yaw: 1.2717617750167847
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 848
+  Height: 1016
   Help:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
+  Image:
+    collapsed: false
   MotionPlanning:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001f3000002f6fc0200000007fb000000100044006900730070006c006100790073010000003d00000168000000c900fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a00560069006500770073000000010c000000a4000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000001ab000001880000017d00ffffff00000312000002f600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000200000000000001f30000039efc0200000006fb000000100044006900730070006c006100790073010000003d0000021b000000c900fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000025e0000017d0000017d00ffffff00000001000001580000039efc0200000002fc0000003d0000021f000000c10100001cfa000000000100000002fb0000000a0049006d0061006700650100000000ffffffff0000005e00fffffffb0000000a0056006900650077007301000005ec000001580000010000fffffffb0000001a0052006f00790061006c00650043006f006e00740072006f006c0100000262000001790000017300ffffff000003ed0000039e00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  RoyaleControl:
+    collapsed: false
   Views:
     collapsed: false
-  Width: 1291
-  X: 454
+  Width: 1860
+  X: 60
   Y: 27

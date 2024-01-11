@@ -1,0 +1,922 @@
+----------------------------------------------13-12-2023 19:08--------------------------------------------------------------------------
+#include <ros/ros.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <boost/foreach.hpp>
+
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+
+void callback(const PointCloud::ConstPtr& msg){
+    printf("Cloud: Width = %d, height = %d\n", msg->width, msg->height);
+    BOOST_FOREACH(const pcl::PointXYZ& pt, msg->points)
+        printf("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
+}
+
+int main(int argc, char** argv)
+{
+    ros::init(argc, argv, "pointcloud_listener");
+    ros::NodeHandle nh;
+    // Create a ROS subscriber for the input point cloud topic, and register the callback function
+    ros::Subscriber sub = nh.subscribe<PointCloud>("/royale_cam0/point_cloud", 1, callback);
+    ros::spin();
+}
+
+-------------------------------------------------------------------
+
+#include <ros/ros.h>
+#include <iostream>
+// PCL specific includes
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/features/integral_image_normal.h>
+#include <pcl/console/print.h>
+#include <pcl/console/parse.h>
+#include <pcl/console/time.h>
+#include <pcl/search/kdtree.h>
+
+ros::Publisher pub;
+// ros::Publisher pub;
+double radius = 0.03;
+int k = 5;
+
+void cloud_cb (const pcl::PCLPointCloud2ConstPtr& input)
+{
+  // Convert data to PointCloud<T>
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromPCLPointCloud2 (*input, *cloud);
+
+  pcl::PointCloud<pcl::Normal> normals;
+
+  // Try our luck with organized integral image based normal estimation
+  if (cloud->isOrganized ())
+  {
+    pcl::IntegralImageNormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+    ne.setInputCloud (cloud);
+    ne.setNormalEstimationMethod (pcl::IntegralImageNormalEstimation<pcl::PointXYZ, pcl::Normal>::COVARIANCE_MATRIX);
+    ne.setNormalSmoothingSize (static_cast<float>(radius));
+    ne.setDepthDependentSmoothing (true);
+    ne.compute (normals);
+  }
+  else
+  {
+    pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+    ne.setInputCloud (cloud);
+    ne.setSearchMethod (pcl::search::KdTree<pcl::PointXYZ>::Ptr (new pcl::search::KdTree<pcl::PointXYZ>));
+    ne.setKSearch (k);
+    ne.setRadiusSearch (radius);
+    ne.compute (normals);
+  }
+
+  // Convert data back
+  pcl::PCLPointCloud2 output_normals;
+  pcl::toPCLPointCloud2 (normals, output_normals);
+
+  printf("Normals:");
+  std::cout<<(output_normals);
+  // pcl::concatenateFields (*input, output_normals, output_normals);
+
+  // Publish the data
+  pub.publish (output_normals);
+}
+
+int main (int argc, char** argv)
+{
+  // Initialize ROS
+  ros::init (argc, argv, "normal_calculation");
+  ros::NodeHandle nh;
+
+  // Create a ROS subscriber for the input point cloud
+  ros::Subscriber sub = nh.subscribe ("/royale_cam0/point_cloud", 1, cloud_cb);
+
+  // Create a ROS publisher for the output point cloud
+  pub = nh.advertise<pcl::PCLPointCloud2> ("/new_point_cloud", 1);
+
+  // Spin
+  ros::spin ();
+}
+------------------------------------------------------------------------------------
+#include <ros/ros.h>
+#include <iostream>
+// PCL specific includes
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/filters/conditional_removal.h>
+
+ros::Publisher pub;
+// ros::Publisher pub;
+double radius = 0.03;
+int k = 5;
+
+void cloud_cb (const pcl::PCLPointCloud2ConstPtr& input)
+{
+  // Convert data to PointCloud<T>
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromPCLPointCloud2 (*input, *cloud);
+
+  pcl::PointCloud<pcl::Normal> normals;
+
+  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+  ne.setInputCloud (cloud);
+
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+  ne.setSearchMethod (tree);
+
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
+  ne.setRadiusSearch (radius);
+  ne.compute (*cloud_normals);
+
+  // Create the filtering object
+  pcl::ConditionalRemoval<pcl::PointXYZ> condrem;
+  condrem.setInputCloud(cloud);
+
+  // Set condition to remove points with the same normals on the ground
+  condrem.setCondition([cloud_normals](const pcl::PointXYZ &point)
+  {
+    int index_x = pcl::getFieldIndex<pcl::Normal>("normal_x", *cloud_normals);
+    int index_y = pcl::getFieldIndex<pcl::Normal>("normal_y", *cloud_normals);
+    int index_z = pcl::getFieldIndex<pcl::Normal>("normal_z", *cloud_normals);
+
+    if(index_x != -1 && index_y != -1 && index_z != -1)
+    {
+      float normal_x = cloud_normals->points[0].normal_x;
+      float normal_y = cloud_normals->points[1].normal_y;
+      float normal_z = cloud_normals->points[2].normal_z;
+
+      if (normal_z > 1.15)
+      {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Convert data back
+  pcl::PCLPointCloud2 output_normals;
+  pcl::toPCLPointCloud2 (normals, output_normals);
+
+  printf("Normals:");
+  std::cout<<(output_normals);
+  // pcl::concatenateFields (*input, output_normals, output_normals);
+
+  // Publish the data
+  pub.publish (output_normals);
+}
+
+int main (int argc, char** argv)
+{
+  // Initialize ROS
+  ros::init (argc, argv, "normal_calculation");
+  ros::NodeHandle nh;
+
+  // Create a ROS subscriber for the input point cloud
+  ros::Subscriber sub = nh.subscribe ("/royale_cam0/point_cloud", 1, cloud_cb);
+
+  // Create a ROS publisher for the output point cloud
+  pub = nh.advertise<pcl::PCLPointCloud2> ("/new_point_cloud", 1);
+
+  // Spin
+  ros::spin ();
+}
+
+-----------------------------------------------------------------------------------------------
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+
+class PointCloudProcessor {
+public:
+    PointCloudProcessor() {
+        // Subscribe to the input point cloud topic
+        pointCloudSub = nh.subscribe("/royale_cam0/point_cloud", 1, &PointCloudProcessor::pointCloudCallback, this);
+
+        // Create publishers for segmented point clouds
+        pubFloor = nh.advertise<sensor_msgs::PointCloud2>("/segmented_floor", 1);
+        pubBinHead = nh.advertise<sensor_msgs::PointCloud2>("/segmented_bin_head", 1);
+    }
+
+    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& inputCloudMsg) {
+        // Convert ROS PointCloud2 message to PCL point cloud
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::fromROSMsg(*inputCloudMsg, *cloud);
+
+        // Estimate normals
+        pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+        ne.setInputCloud(cloud);
+
+        pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+        ne.setSearchMethod(tree);
+
+        pcl::PointCloud<pcl::Normal>::Ptr cloudNormals(new pcl::PointCloud<pcl::Normal>);
+        ne.setRadiusSearch(0.03); // Adjust the radius as needed
+        ne.compute(*cloudNormals);
+
+        // Segment the floor from the bin head based on normals
+        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        pcl::SACSegmentation<pcl::PointXYZ> seg;
+
+        seg.setOptimizeCoefficients(true);
+        seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
+        seg.setMethodType(pcl::SAC_RANSAC);
+        seg.setMaxIterations(1000);
+        seg.setDistanceThreshold(0.05);
+
+        seg.setInputCloud(cloud);
+        seg.segment(*inliers, *coefficients);
+
+        // Extract the floor
+        pcl::PointCloud<pcl::PointXYZ>::Ptr floor(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::ExtractIndices<pcl::PointXYZ> extract;
+        extract.setInputCloud(cloud);
+        extract.setIndices(inliers);
+        extract.setNegative(false);
+        extract.filter(*floor);
+
+        // Extract the bin head
+        pcl::PointCloud<pcl::PointXYZ>::Ptr binHead(new pcl::PointCloud<pcl::PointXYZ>);
+        extract.setNegative(true);
+        extract.filter(*binHead);
+
+        // Publish segmented floor and bin head
+        pubFloor.publish(floor);
+        pubBinHead.publish(binHead);
+    }
+
+private:
+    ros::NodeHandle nh;
+    ros::Subscriber pointCloudSub;
+    ros::Publisher pubFloor;
+    ros::Publisher pubBinHead;
+};
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "point_cloud_processor_node");
+    PointCloudProcessor processor;
+    ros::spin();
+    return 0;
+}
+
+=------------------------------------------------------------------------------------------------
+/**
+ * @file don_segmentation.cpp
+ * Difference of Normals Example for PCL Segmentation Tutorials.
+ *
+ * @author Yani Ioannou
+ * @date 2012-09-24
+ */
+#include <string>
+
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/search/organized.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/filters/conditional_removal.h>
+#include <pcl/segmentation/extract_clusters.h>
+
+#include <pcl/features/don.h>
+
+using namespace pcl;
+
+int
+main (int argc, char *argv[])
+{
+  ///The smallest scale to use in the DoN filter.
+  double scale1;
+
+  ///The largest scale to use in the DoN filter.
+  double scale2;
+
+  ///The minimum DoN magnitude to threshold by
+  double threshold;
+
+  ///segment scene into clusters with given distance tolerance using euclidean clustering
+  double segradius;
+
+  if (argc < 6)
+  {
+    std::cerr << "usage: " << argv[0] << " inputfile smallscale largescale threshold segradius" << std::endl;
+    exit (EXIT_FAILURE);
+  }
+
+  /// the file to read from.
+  std::string infile = argv[1];
+  /// small scale
+  std::istringstream (argv[2]) >> scale1;
+  /// large scale
+  std::istringstream (argv[3]) >> scale2;
+  std::istringstream (argv[4]) >> threshold;   // threshold for DoN magnitude
+  std::istringstream (argv[5]) >> segradius;   // threshold for radius segmentation
+
+  // Load cloud in blob format
+  pcl::PCLPointCloud2 blob;
+  pcl::io::loadPCDFile (infile.c_str (), blob);
+  pcl::PointCloud<PointXYZRGB>::Ptr cloud (new pcl::PointCloud<PointXYZRGB>);
+  pcl::fromPCLPointCloud2 (blob, *cloud);
+
+  // Create a search tree, use KDTreee for non-organized data.
+  pcl::search::Search<PointXYZRGB>::Ptr tree;
+  if (cloud->isOrganized ())
+  {
+    tree.reset (new pcl::search::OrganizedNeighbor<PointXYZRGB> ());
+  }
+  else
+  {
+    tree.reset (new pcl::search::KdTree<PointXYZRGB> (false));
+  }
+
+  // Set the input pointcloud for the search tree
+  tree->setInputCloud (cloud);
+
+  if (scale1 >= scale2)
+  {
+    std::cerr << "Error: Large scale must be > small scale!" << std::endl;
+    exit (EXIT_FAILURE);
+  }
+
+  // Compute normals using both small and large scales at each point
+  pcl::NormalEstimationOMP<PointXYZRGB, PointNormal> ne;
+  ne.setInputCloud (cloud);
+  ne.setSearchMethod (tree);
+
+  /**
+   * NOTE: setting viewpoint is very important, so that we can ensure
+   * normals are all pointed in the same direction!
+   */
+  ne.setViewPoint (std::numeric_limits<float>::max (), std::numeric_limits<float>::max (), std::numeric_limits<float>::max ());
+
+  // calculate normals with the small scale
+  std::cout << "Calculating normals for scale..." << scale1 << std::endl;
+  pcl::PointCloud<PointNormal>::Ptr normals_small_scale (new pcl::PointCloud<PointNormal>);
+
+  ne.setRadiusSearch (scale1);
+  ne.compute (*normals_small_scale);
+
+  // calculate normals with the large scale
+  std::cout << "Calculating normals for scale..." << scale2 << std::endl;
+  pcl::PointCloud<PointNormal>::Ptr normals_large_scale (new pcl::PointCloud<PointNormal>);
+
+  ne.setRadiusSearch (scale2);
+  ne.compute (*normals_large_scale);
+
+  // Create output cloud for DoN results
+  PointCloud<PointNormal>::Ptr doncloud (new pcl::PointCloud<PointNormal>);
+  copyPointCloud (*cloud, *doncloud);
+
+  std::cout << "Calculating DoN... " << std::endl;
+  // Create DoN operator
+  pcl::DifferenceOfNormalsEstimation<PointXYZRGB, PointNormal, PointNormal> don;
+  don.setInputCloud (cloud);
+  don.setNormalScaleLarge (normals_large_scale);
+  don.setNormalScaleSmall (normals_small_scale);
+
+  if (!don.initCompute ())
+  {
+    std::cerr << "Error: Could not initialize DoN feature operator" << std::endl;
+    exit (EXIT_FAILURE);
+  }
+
+  // Compute DoN
+  don.computeFeature (*doncloud);
+
+  // Save DoN features
+  pcl::PCDWriter writer;
+  writer.write<pcl::PointNormal> ("don.pcd", *doncloud, false); 
+
+  // Filter by magnitude
+  std::cout << "Filtering out DoN mag <= " << threshold << "..." << std::endl;
+
+  // Build the condition for filtering
+  pcl::ConditionOr<PointNormal>::Ptr range_cond (
+    new pcl::ConditionOr<PointNormal> ()
+    );
+  range_cond->addComparison (pcl::FieldComparison<PointNormal>::ConstPtr (
+                               new pcl::FieldComparison<PointNormal> ("curvature", pcl::ComparisonOps::GT, threshold))
+                             );
+  // Build the filter
+  pcl::ConditionalRemoval<PointNormal> condrem;
+  condrem.setCondition (range_cond);
+  condrem.setInputCloud (doncloud);
+
+  pcl::PointCloud<PointNormal>::Ptr doncloud_filtered (new pcl::PointCloud<PointNormal>);
+
+  // Apply filter
+  condrem.filter (*doncloud_filtered);
+
+  doncloud = doncloud_filtered;
+
+  // Save filtered output
+  std::cout << "Filtered Pointcloud: " << doncloud->size () << " data points." << std::endl;
+
+  writer.write<pcl::PointNormal> ("don_filtered.pcd", *doncloud, false); 
+
+  // Filter by magnitude
+  std::cout << "Clustering using EuclideanClusterExtraction with tolerance <= " << segradius << "..." << std::endl;
+
+  pcl::search::KdTree<PointNormal>::Ptr segtree (new pcl::search::KdTree<PointNormal>);
+  segtree->setInputCloud (doncloud);
+
+  std::vector<pcl::PointIndices> cluster_indices;
+  pcl::EuclideanClusterExtraction<PointNormal> ec;
+
+  ec.setClusterTolerance (segradius);
+  ec.setMinClusterSize (50);
+  ec.setMaxClusterSize (100000);
+  ec.setSearchMethod (segtree);
+  ec.setInputCloud (doncloud);
+  ec.extract (cluster_indices);
+
+  int j = 0;
+  for (const auto& cluster : cluster_indices)
+  {
+    pcl::PointCloud<PointNormal>::Ptr cloud_cluster_don (new pcl::PointCloud<PointNormal>);
+    for (const auto& idx : cluster.indices)
+    {
+      cloud_cluster_don->points.push_back ((*doncloud)[idx]);
+    }
+
+    cloud_cluster_don->width = cloud_cluster_don->size ();
+    cloud_cluster_don->height = 1;
+    cloud_cluster_don->is_dense = true;
+
+    //Save cluster
+    std::cout << "PointCloud representing the Cluster: " << cloud_cluster_don->size () << " data points." << std::endl;
+    std::stringstream ss;
+    ss << "don_cluster_" << j << ".pcd";
+    writer.write<pcl::PointNormal> (ss.str (), *cloud_cluster_don, false);
+    ++j;
+  }
+}
+-----------------------------------------------------
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+class MarkerPointCloudExtractor {
+public:
+    MarkerPointCloudExtractor() {
+        // Subscribe to the input point cloud topic
+        pointCloudSub = nh.subscribe("/royale_cam0/point_cloud", 1, &MarkerPointCloudExtractor::pointCloudCallback, this);
+
+        // Subscribe to the grayscale image topic
+        imageSub = nh.subscribe("/royale_cam0/gray_image", 1, &MarkerPointCloudExtractor::imageCallback, this);
+
+        // Create publisher for the segmented point cloud
+        pubSegmentedPointCloud = nh.advertise<sensor_msgs::PointCloud2>("/segmented_point_cloud", 1);
+    }
+
+    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& inputCloudMsg) {
+        if (!markersDetected) {
+            ROS_WARN("Markers not detected yet. Skipping point cloud processing.");
+            return;
+        }
+
+        // Convert ROS PointCloud2 message to PCL point cloud
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::fromROSMsg(*inputCloudMsg, *cloud);
+
+        // Extract points within the boundaries of the detected markers
+        extractPointCloudWithinMarkers(cloud);
+
+        // Publish the segmented point cloud
+        pubSegmentedPointCloud.publish(segmentedPointCloud);
+    }
+
+    void imageCallback(const sensor_msgs::ImageConstPtr& imageMsg) {
+        try {
+            // Convert ROS image message to OpenCV image
+            cv::Mat image = cv_bridge::toCvCopy(imageMsg, sensor_msgs::image_encodings::MONO8)->image;
+
+            // Detect markers in the image
+            detectMarkers(image);
+
+        } catch (cv_bridge::Exception& e) {
+            ROS_ERROR("cv_bridge exception: %s", e.what());
+        }
+    }
+
+    void detectMarkers(const cv::Mat& image) {
+        cv::Mat blurredImage;
+        cv::GaussianBlur(image, blurredImage, cv::Size(5, 5), 0);
+
+        cv::Mat edges;
+        cv::Canny(blurredImage, edges, 50, 150);
+
+        std::vector<std::vector<cv::Point>> contours;
+        cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        // Assuming four markers are detected
+        if (contours.size() >= 4) {
+            // Set the boundaries of the detected markers
+            markerRects.resize(4);
+            for (int i = 0; i < 4; ++i) {
+                markerRects[i] = cv::boundingRect(contours[i]);
+            }
+
+            markersDetected = true;
+            ROS_INFO("Markers detected!");
+        } else {
+            markersDetected = false;
+            ROS_WARN("Not enough markers detected!");
+        }
+    }
+
+    void extractPointCloudWithinMarkers(const pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud) {
+        // Initialize the indices to keep
+        pcl::PointIndices::Ptr indicesToKeep(new pcl::PointIndices);
+
+        // Iterate through each point and check if it is within any of the marker boundaries
+        for (size_t i = 0; i < inputCloud->points.size(); ++i) {
+            const pcl::PointXYZ& point = inputCloud->points[i];
+
+            // Check if the point is within any of the marker rectangles
+            for (const cv::Rect& markerRect : markerRects) {
+                if (isPointWithinRect(point, markerRect)) {
+                    indicesToKeep->indices.push_back(i);
+                    break;  // Point is within a marker, move to the next point
+                }
+            }
+        }
+
+        // Extract the segmented point cloud
+        pcl::ExtractIndices<pcl::PointXYZ> extract;
+        extract.setInputCloud(inputCloud);
+        extract.setIndices(indicesToKeep);
+        extract.setNegative(false);
+
+        pcl::PointCloud<pcl::PointXYZ>::Ptr segmentedCloud(new pcl::PointCloud<pcl::PointXYZ>);
+        extract.filter(*segmentedCloud);
+
+        // Convert segmented point cloud to ROS message
+        pcl::toROSMsg(*segmentedCloud, segmentedPointCloud);
+        // segmentedPointCloud.header = inputCloud->header;
+    }
+
+    bool isPointWithinRect(const pcl::PointXYZ& point, const cv::Rect& rect) {
+        // Check if the point is within the rectangle boundaries
+        return (point.x >= rect.x && point.x <= rect.x + rect.width &&
+                point.y >= rect.y && point.y <= rect.y + rect.height);
+    }
+
+private:
+    ros::NodeHandle nh;
+    ros::Subscriber pointCloudSub;
+    ros::Subscriber imageSub;
+    ros::Publisher pubSegmentedPointCloud;
+    sensor_msgs::PointCloud2 segmentedPointCloud;
+
+    std::vector<cv::Rect> markerRects;
+    bool markersDetected = false;
+};
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "marker_point_cloud_extractor_node");
+    MarkerPointCloudExtractor extractor;
+    ros::spin();
+    return 0;
+}
+
+--------------------------------------------------------------------------------------------------------------------
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/Image.h>
+#include <opencv2/opencv.hpp>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <image_transport/image_transport.h>
+#include <sensor_msgs/image_encodings.h>
+
+static const std::string OPENCV_WINDOW = "Image window";
+
+class MarkerPointCloudExtractor {
+public:
+    MarkerPointCloudExtractor() {
+        // Subscribe to the input point cloud topic
+        // pointCloudSub = nh.subscribe("/royale_cam0/point_cloud", 1, &MarkerPointCloudExtractor::pointCloudCallback, this);
+
+        // Subscribe to the input point cloud topic
+        imageSub = nh.subscribe("/royale_cam0/gray_image", 1, &MarkerPointCloudExtractor::imageCallback, this);
+
+        // Create publisher for the segmented point cloud
+        pubSegmentedPointCloud = nh.advertise<sensor_msgs::PointCloud2>("/segmented_point_cloud", 1);
+        pubImage = nh.advertise<sensor_msgs::Image>("/Image", 1);
+    }
+
+    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& inputCloudMsg) {
+
+        // Convert ROS PointCloud2 message to PCL point cloud
+        
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::fromROSMsg(*inputCloudMsg, *cloud);
+
+
+        // Publish the segmented point cloud
+        pubSegmentedPointCloud.publish(cloud);
+    }
+
+    void imageCallback(const sensor_msgs::Image::ConstPtr& inputImageMsg) 
+    {
+        try{
+            cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(inputImageMsg, sensor_msgs::image_encodings::MONO8);
+
+            cv::imshow("Gray Image", cv_ptr->image);
+            cv::waitKey(1);
+        }
+        catch (cv_bridge::Exception &e)
+        {
+            ROS_ERROR("CV_Bridge exception %s", e.what());
+        }
+    }
+    
+private:
+    ros::NodeHandle nh;
+    ros::Subscriber pointCloudSub;
+    ros::Subscriber imageSub;
+    ros::Publisher pubSegmentedPointCloud;
+    ros::Publisher pubImage;
+    sensor_msgs::PointCloud2 segmentedPointCloud;
+};
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "marker_point_cloud_extractor_node");
+    MarkerPointCloudExtractor extractor;
+    ros::spin();
+    return 0;
+}
+
+----------------------------------------------------------------
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/Image.h>
+#include <opencv2/opencv.hpp>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <image_transport/image_transport.h>
+#include <sensor_msgs/image_encodings.h>
+
+static const std::string OPENCV_WINDOW = "Image window";
+
+class MarkerPointCloudExtractor {
+public:
+    MarkerPointCloudExtractor() {
+        // Subscribe to the input point cloud topic
+        // pointCloudSub = nh.subscribe("/royale_cam0/point_cloud", 1, &MarkerPointCloudExtractor::pointCloudCallback, this);
+
+        // Subscribe to the input point cloud topic
+        imageSub = nh.subscribe("/royale_cam0/gray_image", 1, &MarkerPointCloudExtractor::imageCallback, this);
+
+        // Create publisher for the segmented point cloud
+        pubSegmentedPointCloud = nh.advertise<sensor_msgs::PointCloud2>("/segmented_point_cloud", 1);
+        pubImage = nh.advertise<sensor_msgs::Image>("/Image", 10);
+    }
+
+    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& inputCloudMsg) {
+
+        // Convert ROS PointCloud2 message to PCL point cloud
+        
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::fromROSMsg(*inputCloudMsg, *cloud);
+
+
+        // Publish the segmented point cloud
+        pubSegmentedPointCloud.publish(cloud);
+    }
+
+    void imageCallback(const sensor_msgs::Image::ConstPtr& inputImageMsg){
+        try{
+            cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(inputImageMsg, sensor_msgs::image_encodings::TYPE_32FC1);
+
+            cv::Mat converted_image;
+            cv_ptr->image.convertTo(converted_image, CV_8UC1, 255.0);
+            cv_bridge::CvImage cv_image(inputImageMsg->header, sensor_msgs::image_encodings::MONO8, converted_image);
+
+            auto rows = cv_image.image.rows;
+            auto cols = cv_image.image.cols;
+            auto size = rows * cols;
+
+            cv::Mat filtered_image(rows, cols, CV_8UC1);
+
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    auto pixel_value = cv_image.image.at<uchar>(i, j);
+                    
+                    if(pixel_value != 255){
+                        // filtered_image.at<uchar>(i, j) = pixel_value;
+                        ROS_INFO("Pixel value at (%d, %d): %d", i, j, pixel_value);
+                    }
+                }
+            }
+            cv_bridge::CvImage filtered_cv_image(inputImageMsg->header, sensor_msgs::image_encodings::MONO8, filtered_image);
+            pubImage.publish(filtered_cv_image.toImageMsg());
+            cv::imshow("Image", converted_image);
+            cv::waitKey(1);
+            
+        }
+
+        catch (cv_bridge::Exception &e)
+        {
+            ROS_ERROR("CV_Bridge exception %s", e.what());
+        }
+    }
+    
+private:
+    ros::NodeHandle nh;
+    ros::Subscriber pointCloudSub;
+    ros::Subscriber imageSub;
+    ros::Publisher pubSegmentedPointCloud;
+    ros::Publisher pubImage;
+    sensor_msgs::PointCloud2 segmentedPointCloud;
+};
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "marker_point_cloud_extractor_node");
+    MarkerPointCloudExtractor extractor;
+    ros::spin();
+    return 0;
+}
+
+--------------------------------------------------------------------------
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/Image.h>
+#include <opencv2/opencv.hpp>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <image_transport/image_transport.h>
+#include <sensor_msgs/image_encodings.h>
+
+static const std::string OPENCV_WINDOW = "Image window";
+
+class MarkerPointCloudExtractor {
+public:
+    MarkerPointCloudExtractor() {
+        // Subscribe to the input point cloud topic
+        pointCloudSub = nh.subscribe("/royale_cam0/point_cloud", 1, &MarkerPointCloudExtractor::pointCloudCallback, this);
+
+        // Subscribe to the input point cloud topic
+        imageSub = nh.subscribe("/royale_cam0/gray_image", 1, &MarkerPointCloudExtractor::imageCallback, this);
+
+        // Create publisher for the segmented point cloud
+        pubSegmentedPointCloud = nh.advertise<sensor_msgs::PointCloud2>("/segmented_point_cloud", 1);
+        pubImage = nh.advertise<sensor_msgs::Image>("/Image", 1);
+    }
+
+    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& inputCloudMsg) {
+
+        // Convert ROS PointCloud2 message to PCL point cloud
+        
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::fromROSMsg(*inputCloudMsg, *cloud);
+
+        pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        for (const auto& point : cloud->points) {
+            // Dummy segmentation: keep points above a certain height
+            if (point.z > 0.5) {
+                segmented_cloud->points.push_back(point);
+            }
+        }
+
+        // Publish the segmented point cloud
+        sensor_msgs::PointCloud2Ptr segmented_cloud_msg(new sensor_msgs::PointCloud2);
+        pcl::toROSMsg(*segmented_cloud, *segmented_cloud_msg);
+        segmented_cloud_msg->header = inputCloudMsg->header;
+        pubSegmentedPointCloud.publish(segmented_cloud_msg);
+    }
+
+    void imageCallback(const sensor_msgs::Image::ConstPtr& inputImageMsg){
+        try{
+
+            // ROS_INFO("Received image inputImageMsg - Encoding: %s", inputImageMsg->encoding.c_str());
+
+            // Convert ROS image message to OpenCV format
+            cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(inputImageMsg, sensor_msgs::image_encodings::MONO16);
+            // ROS_INFO("Received image - Rows: %d, Cols: %d, Encoding: %s", cv_ptr->image.rows, cv_ptr->image.cols, cv_ptr->encoding.c_str());
+
+            // Display the 16-bit grayscale image
+            // if (!cv_ptr->image.empty()) {
+            //     std::string file_path = "/home/inspire-0/moveit_igus_ws/src/Moveit_Igus_RL_DP5/rl_dp_5/rl_dp_5_pcl/image.jpg";
+            //     cv::imwrite(file_path, cv_ptr->image);
+            //     ROS_INFO("Saved 16-bit image to: %s", file_path.c_str());
+                
+            // } 
+            // else {
+            //     ROS_WARN("Received empty image");
+            // }
+            
+            cv::Mat thresholded;
+            cv::threshold(cv_ptr->image, thresholded, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+
+            // Perform image segmentation based on the threshold
+            cv::Mat segmented_image = cv_ptr->image.clone();
+            segmented_image.setTo(255, thresholded);
+
+            // Publish the segmented image
+            sensor_msgs::ImagePtr segmented_image_msg = cv_bridge::CvImage(inputImageMsg->header, sensor_msgs::image_encodings::MONO16, segmented_image).toImageMsg();
+            pubImage.publish(segmented_image_msg);
+
+        }
+
+        catch (cv_bridge::Exception &e)
+        {
+            ROS_ERROR("CV_Bridge exception %s", e.what());
+        }
+    }
+    
+private:
+    ros::NodeHandle nh;
+    ros::Subscriber pointCloudSub;
+    ros::Subscriber imageSub;
+    ros::Publisher pubSegmentedPointCloud;
+    ros::Publisher pubImage;
+    sensor_msgs::PointCloud2 segmentedPointCloud;
+};
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "marker_point_cloud_extractor_node");
+    MarkerPointCloudExtractor extractor;
+    ros::spin();
+    return 0;
+}
+
+-------------------------
+#!/usr/bin/env python
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
+import numpy as np
+import cv2 as cv
+
+class ImageProcessor:
+    def __init__(self):
+        rospy.init_node('image_processor_node', anonymous=True)
+
+        # Set the topic you are subscribed to
+        self.image_topic = '/royale_cam0/gray_image'  # Replace with your actual image topic
+
+        # Initialize OpenCV bridge
+        self.bridge = CvBridge()
+
+        # Subscribe to the image topic
+        rospy.Subscriber(self.image_topic, Image, self.image_callback)
+
+    def image_callback(self, msg):
+        try:
+            # Convert ROS Image message to OpenCV image
+            gray_image_mono16 = self.bridge.imgmsg_to_cv2(msg, desired_encoding='mono16')
+        except CvBridgeError as e:
+            rospy.logerr("CvBridge Error: {}".format(e))
+            return
+        
+        a = cv.imread(gray_image_mono16)
+        # gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+        # find Harris corners
+        gray = np.float32(a)
+        dst = cv.cornerHarris(gray,2,3,0.04)
+        dst = cv.dilate(dst,None)
+        ret, dst = cv.threshold(dst, 0.01*dst.max(), 255, 0)
+        dst = np.uint8(dst)
+        # find centroids
+        ret, labels, stats, centroids = cv.connectedComponentsWithStats(dst)
+        # define the criteria to stop and refine the corners
+        criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+        corners = cv.cornerSubPix(gray,np.float32(centroids),(5,5),(-1,-1),criteria)
+        # Now draw them
+        res = np.hstack((centroids,corners))
+        res = np.int8(res)
+        gray[res[:,1],res[:,0]]=[0,0,255]
+        gray[res[:,3],res[:,2]] = [0,255,0]
+        cv.imwrite('subpixel5.png', gray)
