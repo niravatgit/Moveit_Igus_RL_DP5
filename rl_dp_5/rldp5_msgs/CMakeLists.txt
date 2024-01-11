@@ -109,7 +109,7 @@ catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES rldp5_msgs
   CATKIN_DEPENDS actionlib_msgs std_msgs
-  DEPENDS system_lib
+  # DEPENDS system_lib
 )
 
 ###########
