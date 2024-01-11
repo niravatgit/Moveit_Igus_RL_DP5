@@ -67,6 +67,10 @@ class ClickAndHoldApp:
 
         homing_all_button = tk.Button(frame, text="Homing All", command=self.start_homing)
         homing_all_button.grid(row=6, column=0, columnspan=6, pady=20)
+
+        upright_button = tk.Button(frame, text="Upright", command=self.upright)
+        upright_button.grid(row=7, column=0, columnspan=6, pady=20)
+
         self.update_timer()
 
     def callback_fn(self, data):
@@ -79,6 +83,13 @@ class ClickAndHoldApp:
         self.joint_state.position = [np.deg2rad(axis.getPosition()) for axis in self.axis_controller.axes]
         print(f"Joint Posiions at {rospy.Time.now()}: {self.joint_state.position}")
         self.fake_controller_joint_states_pub.publish(self.joint_state)
+
+    def upright(self):
+        print("Setting the robot to upright position")
+        pos = 0.0
+        for axis in self.axis_controller.axes:
+            self.axis_controller.setTargetPosition(axis, pos)
+        self.publish_joint_positions()
 
     def jog(self, event, axis, direction):
         cur_position = self.axis_controller.axes[axis].getPosition()
@@ -127,10 +138,10 @@ class D1AxisController:
     def setTargetVelocity(self, axis, velocity):
         if 0 <= axis < len(self.axes):
             self.axes[axis].targetVelocity(velocity)
-            
+
     def setTargetPosition(self, axis, desired_position):
         if 0 <= axis < len(self.axes):
-            self.axes[axis].targetPosition(desired_position)
+            self.axes[axis].profile_pos_mode(desired_position, speed, accel)
 
     def get_current_position(self, axis):
         return self.axes[axis].getPosition()
