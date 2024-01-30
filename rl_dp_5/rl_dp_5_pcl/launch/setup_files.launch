@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Include the first launch file -->
+  <!-- <include file="$(find rl_dp_5_moveit)/launch/demo.launch" /> -->
+
+  <!-- Uncomment if you want to visualize in gazebo too -->
+  <include file="$(find rl_dp_5_moveit)/launch/demo_gazebo.launch" />
+
+  <!-- Include the second launch file -->
+  <include file="$(find royale_in_ros)/launch/camera_driver.launch" />
+
+  <!-- Launch the Python node -->
+  <node name="pixel2pcl" pkg="rl_dp_5_pcl" type="pixel2pcl.py" output="screen">
+    <!-- Add any necessary parameters or arguments for your Python node here -->
+  </node>
+
+</launch>
