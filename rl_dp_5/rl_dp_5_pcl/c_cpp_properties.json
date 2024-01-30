@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/inspire-0/moveit_igus_ws/src",
+                "/usr/include/pcl-1.10",
+                "/home/inspire-0/moveit_igus_ws/devel/include",
+                "/usr/include/eigen3",
+                "/opt/ros/noetic/include",
+                "/usr/include"
+            ],
+            "defines": [],
+            "cStandard": "gnu11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "gcc-x64",
+            "mergeConfigurations": false,
+            "compilerPath": "/usr/bin/gcc",
+            "browse": {
+                "path": [
+                    "/home/inspire-0/moveit_igus_ws"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}
