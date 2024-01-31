@@ -108,6 +108,8 @@ source devel/setup.bash
 
 - Launch either RViz or Gazebo as the RViz configuration file is pre-set for visualizing the TOF sensor data with the Royale Control panel, Image,    PointCloud2 types added. The rviz file is located in rl_dp_5_moveit/rviz/scene.rviz
 
+Check the [rl_dp_5](https://github.com/KarthikMothiki/rl_dp_5_pcl/) repo for more information
+
 - You need to have the libroyale-5.9.0.2568-LINUX-x86-64Bit SDK and copy the sampleROS package in your src.
   Now you need to launch the camera_driver file
   ```
