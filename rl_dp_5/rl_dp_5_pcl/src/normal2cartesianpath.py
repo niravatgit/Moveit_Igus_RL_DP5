@@ -85,7 +85,7 @@ def go_to_joint_state():
     # Copy class variables to local variables to make the code clearer.
     joint_goal = JointState()
     joint_goal.name = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5']
-    joint_goal.position = [0, 0, -pi/2, -pi/4, 0]
+    joint_goal.position = [0, 0, -pi/16, -pi/16, 0]
     # joint_goal.position = [1.243416462060054e-05, 6.248125811403327e-06, -1.5707127297497383, -0.7853212021615734, -8.443752722797626e-06]
 
 
@@ -159,7 +159,7 @@ def visualize_normals(points, normals):
             marker.pose.orientation.y = quaternion[1]
             marker.pose.orientation.z = quaternion[2]
             marker.pose.orientation.w = quaternion[3]
-            # # marker.pose.orientation.w = -1.0
+            # marker.pose.orientation.w = -1.0
 
             marker.scale.x = 0.01  # Arrow shaft diameter
             marker.scale.y = 0.001  # Arrow head diameter
@@ -230,23 +230,25 @@ def quaternion_from_normal(normal):
     return quaternion
 
 def go_to_pose_goal(fixed_pose):
+
     """
     Move the robot arm to a specified pose.
 
     Args:
         fixed_pose: The target pose for the end-effector.
-        type(fixed_pose): <class 'geometry_msgs.msg._Pose.Pose'>
 
     Returns:
         None
     """
-    # Print debug information
-    print("Attempting to move to pose goal:", fixed_pose)
+    eef = arm_group.get_end_effector_link()
+    # print(eef)
+    # print(f"in the go to pose goal function: {fixed_pose}")
 
     # Set the target pose for the end-effector
+    print(type(fixed_pose))
     pose = [fixed_pose]
-    # print("Pose object:", pose)  # Print the pose object for debugging
-    arm_group.set_pose_target(pose, end_effector_link='tool0')
+    print(type(pose))
+    arm_group.set_pose_target(pose, end_effector_link = 'tool0')
 
     # Plan the motion
     ik_plan = arm_group.plan()
@@ -254,6 +256,8 @@ def go_to_pose_goal(fixed_pose):
     # Check if the plan is valid
     if isinstance(ik_plan, tuple) or not ik_plan:
         print("Failed to plan a valid trajectory.")
+        # print(f"IK Plan: {ik_plan}")
+        # print(f"Type of IK Plan: {type(ik_plan)}")
         arm_group.clear_pose_targets()
         return
 
@@ -270,7 +274,6 @@ def go_to_pose_goal(fixed_pose):
     finally:
         # Clear the pose targets
         arm_group.clear_pose_targets()
-
 
 def compute_normals(point_cloud, k_neighbors=30):
     """
@@ -310,13 +313,15 @@ def pc_callback(cloud_msg):
     Args:
         cloud_msg (sensor_msgs.msg.PointCloud2): Point cloud message.
     """
+
     point_cloud = np.asarray(list(pc2.read_points(cloud_msg, skip_nans=True)))
 
-    # print(f"Shape of point cloud: {point_cloud.shape}")
+    # print(f"Shape of point cloud: {.point_cloud.shape}")
 
     computed_normals = compute_normals(point_cloud)
 
     waypoints = visualize_normals(point_cloud, computed_normals)
+    # print("pose onbject 1 :",waypoints[0])
     # print(f"Shape of waypoints: {np.asarray(waypoints).shape}")
 
     # Can be found via uncommenting the print statement in the extract_roi_from_point_cloud function of pixel2pcl.py file
@@ -430,18 +435,14 @@ def pc_callback(cloud_msg):
     # arm_group.go(wait = True)
 
     # Moving from singularity
-    go_to_joint_state()
+    # go_to_joint_state()
     
-    for i in range(rows):
-        for j in range(cols):
-            # Access the element at position (i, j)
-            pose = grid[i, j]
-            # print(f"Element at ({i}, {j}): {pose}")
-            # go_to_pose_goal(pose)
-
-    arm_group.set_pose_targets(points_to_be_followed, end_effector_link = arm_group.get_end_effector_link())
-    plan1=arm_group.plan()
-    success = arm_group.go(wait=True)
+    # for i in range(rows):
+    #     for j in range(cols):
+    #         # Access the element at position (i, j)
+    #         pose = grid[i, j]
+    #         # print(f"Element at ({i}, {j}): {pose}")
+    #         go_to_pose_goal(pose)
 
     # target_row = 15
 
@@ -453,27 +454,13 @@ def pc_callback(cloud_msg):
     #     go_to_pose_goal(pose)
 
     
-    # cartesian_plan, fraction = compute_cartesion(points_to_be_followed)
-    # # print(cartesian_plan,"\n\n\n\n")
-    # disp_trajectory(cartesian_plan)
-    # arm_group.execute(cartesian_plan, wait=True)
+    cartesian_plan, fraction = compute_cartesion(points_to_be_followed)
+    # print(cartesian_plan,"\n\n\n\n")
+    disp_trajectory(cartesian_plan)
+    arm_group.execute(cartesian_plan, wait=True)
 
     # Cartesian path planning doesn't work please read this: https://picknik.ai/cartesian%20planners/moveit/motion%20planning/2021/01/07/guide-to-cartesian-planners-in-moveit.html
     
-
-def go_to_pose():
-    pose = Pose()
-    pose.position.x = -0.5
-    pose.position.x = 0
-    pose.position.x = 0
-    pose.orientation.x = 0
-    pose.orientation.x = 0
-    pose.orientation.x = 0
-    pose.orientation.x = 1
-
-    arm_group.set_pose_target([pose])
-    success = arm_group.go(wait = True)
-
 def compute_cartesion(waypoints):
 
     """
