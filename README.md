@@ -10,6 +10,7 @@ Out ambition is to amalgamatecutting-edge ultrasound imaging technology with a u
 
 The follwing tree depicts the files  contained within this directory:
 ```
+Moveit_Igus_RL_DP5
 ├── documents
 ├── igus_examples
 ├── pmd flex2
@@ -38,5 +39,4 @@ The follwing tree depicts the files  contained within this directory:
             ├── pixel2pcl.py # Converts image into point cloud data and segment specific region of interest
             ├── test_code.cpp # C++ code using PCL to calculate surface normals (not used at this point)
 ```
-### Note:
-The above represented tree of the directory  is not an actual representation, but rather a visualization of how the directories are structured in this, only important and updated files have been depicted and there are more files within this directory.
+Note: The above represented tree of the directory  is not an actual representation, but rather a visualization of how the directories are structured in this, only important and updated files have been depicted and there are more files withing this directory.
