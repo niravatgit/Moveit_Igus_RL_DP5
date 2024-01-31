@@ -1,10 +1,12 @@
 # IGUS RLDP5
 
-### Indigenous State-of-the-art Ultrasound Scanner for Maternal and Fetal Healthcare
+## Indigenous State-of-the-art Ultrasound Scanner for Maternal and Fetal Healthcare
+
+### Description:
 This project represents a visionary endeavour geared towards crafting a revolutionary ultrasound scanner meticulously designed to cater to the distictive requisites and challenges faced within maternal and fetal healthcare among indigenous communities.
 Out ambition is to amalgamatecutting-edge ultrasound imaging technology with a user-friendly interface, incorporating culturally sensitive attributes to amplify the accessibility and efficacy of prenatal care withing these populations.
 
-## Project Contents
+### Project Contents:
 
 The follwing tree depicts the files  contained within this directory:
 ```
@@ -36,4 +38,5 @@ The follwing tree depicts the files  contained within this directory:
             ├── pixel2pcl.py # Converts image into point cloud data and segment specific region of interest
             ├── test_code.cpp # C++ code using PCL to calculate surface normals (not used at this point)
 ```
-Note: The above represented tree of the directory  is not an actual representation, but rather a visualization of how the directories are structured in this, only important and updated files have been depicted and there are more files withing this directory.
+### Note:
+The above represented tree of the directory  is not an actual representation, but rather a visualization of how the directories are structured in this, only important and updated files have been depicted and there are more files within this directory.
