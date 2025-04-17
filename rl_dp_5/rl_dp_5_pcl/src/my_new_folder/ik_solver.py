@@ -1,3 +1,6 @@
+# This script attempts to solve inverse kinematics (IK) for a robot arm by perturbing a target position using nearby points from a 3D point cloud.
+# It leverages MoveIt! and a fixed orientation to find feasible joint solutions and execute the motion if successful.
+
 #!/usr/bin/env python3
 import sys
 import rospy
