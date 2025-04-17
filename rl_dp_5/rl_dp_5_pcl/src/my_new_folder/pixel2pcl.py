@@ -1,7 +1,9 @@
+#The code is used to segment the ROI from pointcloud data and repositions it to a predefined target center.
+
 #!/usr/bin/env python3
 import open3d as o3d
 import numpy as np
-import rospy
+import rospy 
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs import point_cloud2
 from std_msgs.msg import Header
