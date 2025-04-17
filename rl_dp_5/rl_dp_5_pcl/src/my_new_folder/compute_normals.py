@@ -1,3 +1,6 @@
+# This script processes 3D point cloud data to compute surface normals at each point using Open3D and visualizes them in RViz as arrow markers. 
+
+
 #!/usr/bin/env python3
 import rospy
 import numpy as np
