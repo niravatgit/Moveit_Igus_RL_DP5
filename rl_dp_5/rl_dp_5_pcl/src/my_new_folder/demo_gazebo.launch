@@ -1,3 +1,5 @@
+# Added gazebo_controllers.yaml note to this code to ensure arm_controllers are triggered after initiating the launch file.
+
 <?xml version="1.0"?>
 <launch>
   <!-- MoveIt options -->
