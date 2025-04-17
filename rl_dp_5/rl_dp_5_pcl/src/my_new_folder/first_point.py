@@ -1,3 +1,5 @@
+# This script loads a 3D point cloud and finds the nearest neighbors in the cloud for a set of specified taget points from the rounded_pointcloud.ply 
+
 #!/usr/bin/env python3
 
 import open3d as o3d
