@@ -1,3 +1,5 @@
+# This script uses MoveIt! and Open3D to load a point cloud, select target positions, compute inverse kinematics (IK) solutions for each with predefined orientations, and move a robot arm to those positions sequentially. 
+
 #!/usr/bin/env python3
 import sys
 import rospy
