@@ -1,3 +1,6 @@
+# This script plans and executes a sequence of robot arm motions using positions from a point cloud, assigning specific orientations to each target.
+# used to move robot in rviz and gazebo by following a trajectory.
+
 #!/usr/bin/env python3
 import sys
 import rospy
