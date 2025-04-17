@@ -1,3 +1,5 @@
+# This node is a point cloud preprocessor that listens to "/royale_cam0/segmented_point_cloud", applies statistical noise removal and voxel grid downsampling, and republishes the cleaned result to "/smoothed_pointcloud".
+
 #!/usr/bin/env python3
 
 import rospy
