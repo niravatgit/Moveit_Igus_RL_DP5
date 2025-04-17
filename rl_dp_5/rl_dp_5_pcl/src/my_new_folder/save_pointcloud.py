@@ -1,3 +1,5 @@
+# This ROS node is a simple point cloud saver that subscribes to "/smoothed_pointcloud", converts the PointCloud2 message to an Open3D point cloud, and writes it to a .ply file.
+
 #!/usr/bin/env python3
 
 import rospy
