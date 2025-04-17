@@ -1,3 +1,5 @@
+# This script loads a point cloud, rounds its coordinates for easier processing, and identifies the nearest neighbors to two target positions.
+
 #!/usr/bin/env python3
 
 import open3d as o3d
