@@ -1,4 +1,16 @@
-## For all the below commands, run the updated scripts that are placed inside this folder only "(Moveit_Igus_RL_DP5/rl_dp_5/rl_dp_5_pcl/src/my_new_folder)".
+# 🦾 RL DP5 Robot - Enhanced Pipeline
+
+> ⚠️ All the following commands assume you're using updated scripts from:
+`Moveit_Igus_RL_DP5/rl_dp_5/rl_dp_5_pcl/src/my_new_folder`
+
+---
+
+## 🔧 Compile the Project
+
+```bash
+cd ~/catkin_ws
+catkin_make
+source devel/setup.bash
 
 
 
@@ -8,7 +20,7 @@ catkin_make
 source devel/setup.bash
 
 **Run the rviz launch file to setup Motion Planning and other topic:**
-## roslaunch rl_dp_5_moveit demo.launch
+roslaunch rl_dp_5_moveit demo.launch
 
 **If you want to see the robot in gazebo as well run the following command:**
 roslaunch rl_dp_5_moveit demo_gazebo.launch
