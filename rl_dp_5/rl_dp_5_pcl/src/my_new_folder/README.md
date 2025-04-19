@@ -12,6 +12,12 @@ cd ~/catkin_ws
 catkin_make
 source devel/setup.bash
 
+## 🚀 Launch Motion Planning in RViz
+
+```bash
+roslaunch rl_dp_5_moveit demo.launch
+
+
 ## 🧭 Launch Motion Planning in RViz
 
 ```bash
