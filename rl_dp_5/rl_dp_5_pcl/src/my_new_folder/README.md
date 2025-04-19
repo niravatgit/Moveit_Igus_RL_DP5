@@ -8,7 +8,7 @@ catkin_make
 source devel/setup.bash
 
 **Run the rviz launch file to setup Motion Planning and other topic:**
-roslaunch rl_dp_5_moveit demo.launch
+## roslaunch rl_dp_5_moveit demo.launch
 
 **If you want to see the robot in gazebo as well run the following command:**
 roslaunch rl_dp_5_moveit demo_gazebo.launch
