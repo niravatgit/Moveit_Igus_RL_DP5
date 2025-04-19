@@ -1,5 +1,35 @@
 # 🦾 RL DP5 Robot - Enhanced Pipeline
 
+> ⚠️ All the following commands assume you're using updated scripts from:  
+> `Moveit_Igus_RL_DP5/rl_dp_5/rl_dp_5_pcl/src/my_new_folder`
+
+---
+
+## 🔧 Compile the Project
+
+```bash
+cd ~/catkin_ws
+catkin_make
+source devel/setup.bash
+
+## 🧭 Launch Motion Planning in RViz
+
+```bash
+roslaunch rl_dp_5_moveit demo.launch
+
+## 🏗️ Launch Robot in Gazebo + RViz
+```bash
+roslaunch rl_dp_5_moveit demo_gazebo.launch
+
+
+
+
+
+
+
+
+# 🦾 RL DP5 Robot - Enhanced Pipeline
+
 > ⚠️ All the following commands assume you're using updated scripts from:
 `Moveit_Igus_RL_DP5/rl_dp_5/rl_dp_5_pcl/src/my_new_folder`
 
