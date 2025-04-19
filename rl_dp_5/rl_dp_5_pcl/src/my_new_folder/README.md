@@ -12,7 +12,8 @@ cd ~/catkin_ws
 catkin_make
 source devel/setup.bash
 
-🧭 Launch Motion Planning in RViz
+# 🧭 Launch Motion Planning in RViz
+
 roslaunch rl_dp_5_moveit demo.launch
 🏗️ Launch Robot in Gazebo + RViz
 roslaunch rl_dp_5_moveit demo_gazebo.launch
