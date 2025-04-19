@@ -24,8 +24,8 @@ roslaunch royale_in_ros camera_driver.launch
 ##🧼 Segment the Point Cloud
 rosrun rl_dp_5_pcl pixel2pcl.py
 
-🧠 Process Pre-segmented Point Cloud
+##🧠 Process Pre-segmented Point Cloud
 rosrun rl_dp_5_pcl process_pointcloud.py
 
-🦿 Run Motion Planning and Execution
+##🦿 Run Motion Planning and Execution
 rosrun rl_dp_5_pcl joint_trajectory.py
