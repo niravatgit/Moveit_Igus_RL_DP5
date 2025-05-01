@@ -29,27 +29,39 @@ class Rl_DP_5:
         self.axis_controller = [Aaxis, Baxis, Caxis, Daxis, Eaxis]
         print('Created dryve interfaces')
         self.isHomed = False
+        self.lock = threading.Lock()
 
     def set_target_position(self, axis, desired_absolute_position):
-        if self.isHomed == True:
-            if 0 <= axis < len(self.axis_controller):
-                if self.axis_controller[axis].min_pos < desired_absolute_position < self.axis_controller[axis].max_pos:
+        with self.lock:
+            if self.isHomed == True:
+                if 0 <= axis < len(self.axis_controller):
+                    if self.axis_controller[axis].min_pos < desired_absolute_position < self.axis_controller[axis].max_pos:
                     self.axis_controller[axis].profile_pos_mode(desired_absolute_position, speed, accel)
+                    else:
+                        print('Axis limit error')
                 else:
-                    print('Axis limit error')
+                    print('Axis ID larger than permitted')    
             else:
-                print('Axis ID larger than permitted')    
-        else:
-            print('Robot is NOT HOMED')
+                print('Robot is NOT HOMED')
 
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
         self.axis_controller[axis].homing(homespeed, homeaccel)
 
     def home_all(self):
-        for axis in self.axis_controller:
-            print(f"Started homing {axis.Axis}")
-            axis.homing(homespeed, homeaccel)
+        threads = []
+        for axis in range(len(self.axis_controller)):
+            t=threading.Thread(
+              target=self.axis_controller[axis].homing,
+              args=(homespeed, homeaccel)
+            )
+            threads.append(t)
+            t.start()
+            
+        for t in threads:
+            t.join()
+            
+        self.isHomed = True
 
     def get_current_position(self, axis):
         return self.axis_controller[axis].getPosition()
@@ -159,19 +171,42 @@ class RL_DP_5_ROS:
         rospy.loginfo("Joint States action execute_cb starting...")
         self.goal = goal.joint_states
         success = True
-        rospy.loginfo("Joint States action execute_cb starting...")
 
         if self._as_joint_pos.is_preempt_requested():
             rospy.loginfo('%s: Preempted' % self._action_name)
-            self._as_home_all.set_preempted()
+            self._as_joint_pos.set_preempted()
             success = False
 
-        # Should check with client
-        for i in range(5):
-            self.robot.set_target_position(i, self.goal[i])
+        # Create and start threads for all joints
+        threads = []
+        results = [False]*5
+    
+    def worker(axis, pos, results):
+        try:
+            self.robot.set_target_position(axis, pos)
+            results[axis] = True
+        except Exception as e:
+            rospy.logerr(f"Error moving axis {axis+1}: {str(e)}")
+    
+    for i in range(5):
+        t = threading.Thread(
+            target=worker,
+            args=(i, self.goal[i], results),
+            name=f"Joint_{i+1}_Mover"
+        )
+        threads.append(t)
+        t.start()
 
-        self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
-        self.check_result(self._as_joint_pos, self.result_joint_pos, success)
+    # Wait for all threads to complete with timeout
+    for t in threads:
+        t.join(timeout=10.0)  # 10 second timeout per thread
+        if t.is_alive():
+            rospy.logwarn(f"Thread {t.name} did not complete in time")
+
+    success = all(results)
+    self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
+    self.check_result(self._as_joint_pos, self.result_joint_pos, success)
+    
 
     def send_feedback(self, actionServer, fb, res):       
         self.positions = []
