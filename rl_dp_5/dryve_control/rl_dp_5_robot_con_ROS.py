@@ -153,6 +153,7 @@ class RL_DP_5_ROS:
         for i in range(5):
             thread = threading.Thread(target=self.robot.set_target_position, args=(i, self.goal[i]), daemon = True) 
             threads.append(thread)
+        for thread in threads:
             thread.start()
 
         for thread in threads:
@@ -204,6 +205,7 @@ class MoveItInterface:
             for i in range(5):
                 thread = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])), daemon=True)
                 threads.append(thread)
+            for thread in threads:
                 thread.start()
             for thread in threads:
                 thread.join()
