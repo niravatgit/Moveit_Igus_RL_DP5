@@ -141,7 +141,7 @@ class RL_DP_5_ROS:
         self.result_joint_pos = set_des_posResult()
 
         rospy.loginfo("Joint States action execute_cb starting...")
-        desired_positions = goal.joint_states
+        self.goal = goal.joint_states
         success = True
 
         if self._as_joint_pos.is_preempt_requested():
@@ -150,34 +150,14 @@ class RL_DP_5_ROS:
             success = False
 
         threads = []
-        results = [False] * 5
-
-        class Worker:
-            def __init__(self, robot, axis, pos, results):
-                self.robot = robot
-                self.axis = axis
-                self.pos = pos
-                self.results = results
-
-            def __call__(self):
-                try:
-                    self.robot.set_target_position(self.axis, self.pos)
-                    self.results[self.axis] = True
-                except Exception as e:
-                    rospy.logerr(f"Error moving axis {self.axis + 1}: {str(e)}")
-
         for i in range(5):
-            worker = Worker(self.robot, i, desired_positions[i], results)
-            t = threading.Thread(target=worker, name=f"Joint_{i + 1}_Mover")
-            threads.append(t)
-            t.start()
+            thread = threading.Thread(target=self.robot.set_target_position, args=(i, self.goal[i]), daemon = True) 
+            threads.append(thread)
+            thread.start()
 
-        for t in threads:
-            t.join(timeout=10.0)
-            if t.is_alive():
-                rospy.logwarn(f"Thread {t.name} did not complete in time")
-
-        success = all(results)
+        for thread in threads:
+            thread.join()
+            
         self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
         self.check_result(self._as_joint_pos, self.result_joint_pos, success)
 
@@ -222,11 +202,11 @@ class MoveItInterface:
         threads = []
         with threading.Lock():
             for i in range(5):
-                t = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(joint_state_position[i])), daemon=True)
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join()
+                thread = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])), daemon=True)
+                threads.append(thread)
+                thread.start()
+            for thread in threads:
+                thread.join()
 
 if __name__ == "__main__":
     try:
