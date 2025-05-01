@@ -31,17 +31,24 @@ class Rl_DP_5:
         self.lock = threading.Lock()
 
     def set_target_position(self, axis, desired_absolute_position):
-        with self.lock:
-            if self.isHomed:
-                if 0 <= axis < len(self.axis_controller):
-                    if self.axis_controller[axis].min_pos < desired_absolute_position < self.axis_controller[axis].max_pos:
-                        self.axis_controller[axis].profile_pos_mode(desired_absolute_position, speed, accel)
-                    else:
-                        print('Axis limit error')
-                else:
-                    print('Axis ID larger than permitted')
-            else:
-                print('Robot is NOT HOMED')
+        if not self.isHomed:
+            print('Robot is NOT HOMED')
+            return
+
+        if not (0 <= axis < len(self.axis_controller)):
+            print('Axis ID larger than permitted')
+            return
+
+        if not (self.axis_controller[axis].min_pos < desired_absolute_position < self.axis_controller[axis].max_pos):
+            print('Axis limit error')
+            return
+
+        # Optional: Lock per-axis if dryve is not thread-safe
+        threading.Thread(
+        target=self.axis_controller[axis].profile_pos_mode,
+        args=(desired_absolute_position, speed, accel),
+        daemon=True
+    ).start()
 
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
