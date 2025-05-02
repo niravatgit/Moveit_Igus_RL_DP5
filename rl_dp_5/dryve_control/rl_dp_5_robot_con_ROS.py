@@ -29,6 +29,10 @@ class Rl_DP_5:
         print('Created dryve interfaces')
         self.isHomed = False
         self.lock = threading.Lock()
+        
+        for axis in self.axis_controller:
+            axis.target_position = 0
+            axis.travel_distance = 0
 
     def set_target_position(self, axis, desired_absolute_position):
         if not self.isHomed:
@@ -42,13 +46,14 @@ class Rl_DP_5:
         if not (self.axis_controller[axis].min_pos < desired_absolute_position < self.axis_controller[axis].max_pos):
             print('Axis limit error')
             return
+            
+        current_pos = self.axis_controller[axis].getPosition()
+        
+        travel_distance = abs(desired_absolute_position - current_pos)
+        
+        self.axis_controller[axis].target_position = desired_absolute_position
+        self.axis_controller[axis].travel_distance = travel_distance
 
-        # Optional: Lock per-axis if dryve is not thread-safe
-        threading.Thread(
-        target=self.axis_controller[axis].profile_pos_mode,
-        args=(desired_absolute_position, speed, accel),
-        daemon=True
-    ).start()
 
     def home(self, axis):
         print(f"Started homing Axis {axis + 1}")
@@ -155,19 +160,35 @@ class RL_DP_5_ROS:
             rospy.loginfo('%s: Preempted' % self._action_name)
             self._as_joint_pos.set_preempted()
             success = False
-
-        threads = []
-        for i in range(5):
-            thread = threading.Thread(target=self.robot.set_target_position, args=(i, self.goal[i]), daemon = True) 
-            threads.append(thread)
-        for thread in threads:
-            thread.start()
-
-        for thread in threads:
-            thread.join()
             
+        # First pass - set target positions and calculate distances
+        for i in range(5):
+            self.robot.set_target_position(i, self.goal[i])
+
+        # Find the maximum travel distance
+        max_distance = max([self.robot.axis_controller[i].travel_distance for i in range(5)])
+    
+        # Calculate scaling factors and set velocities
+        for i in range(5):
+            if max_distance > 0:
+               # Scale velocity based on distance (joints with shorter distances move slower)
+               scaled_speed = speed * (self.robot.axis_controller[i].travel_distance / max_distance)
+            else:
+               scaled_speed = speed
+            
+            # Ensure minimum speed to prevent extremely slow movements
+            scaled_speed = max(scaled_speed, speed * 0.1)  # Don't go slower than 10% of normal speed
+            
+            # Start movement with scaled velocity
+            threading.Thread(
+                       target=self.robot.axis_controller[i].profile_pos_mode,
+            args=(self.robot.axis_controller[i].target_position, scaled_speed, accel),
+            daemon=True
+        ).start()
+
         self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
         self.check_result(self._as_joint_pos, self.result_joint_pos, success)
+
 
     def send_feedback(self, actionServer, fb, res):
         positions = []
