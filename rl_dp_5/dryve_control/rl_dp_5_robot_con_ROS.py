@@ -161,34 +161,48 @@ class RL_DP_5_ROS:
             self._as_joint_pos.set_preempted()
             success = False
             
-        # First pass - set target positions and calculate distances
-        for i in range(5):
-            self.robot.set_target_position(i, self.goal[i])
-
-        # Find the maximum travel distance
-        max_distance = max([self.robot.axis_controller[i].travel_distance for i in range(5)])
+        # Calculate current positions and movement distances
+        current_positions = [self.robot.get_current_position(i) for i in range(5)]
+        distances = [abs(self.goal[i] - current_positions[i]) for i in range(5)]
     
-        # Calculate scaling factors and set velocities
-        for i in range(5):
-            if max_distance > 0:
-               # Scale velocity based on distance (joints with shorter distances move slower)
-               scaled_speed = speed * (self.robot.axis_controller[i].travel_distance / max_distance)
+        # Find the maximum distance (longest movement)
+        max_distance = max(distances)
+        if max_distance == 0:
+            max_distance = 1  # Avoid division by zero if no movement needed
+    
+        # Calculate movement time (based on max distance and base speed)
+        movement_time = max_distance / speed
+    
+        # Calculate required speeds for each joint
+        joint_speeds = []
+        for dist in distances:
+            if dist == 0:
+                joint_speeds.append(0)  # No movement needed
             else:
-               scaled_speed = speed
-            
-            # Ensure minimum speed to prevent extremely slow movements
-            scaled_speed = max(scaled_speed, speed * 0.1)  # Don't go slower than 10% of normal speed
-            
-            # Start movement with scaled velocity
-            threading.Thread(
-                       target=self.robot.axis_controller[i].profile_pos_mode,
-            args=(self.robot.axis_controller[i].target_position, scaled_speed, accel),
-            daemon=True
-        ).start()
+                joint_speeds.append(dist / movement_time)
+    
+        # Move all joints simultaneously with calculated speeds
+        threads = []
+        for i in range(5):
+            if joint_speeds[i] > 0:  # Only move if needed
+                t = threading.Thread(
+                    target=self.robot.axis_controller[i].profile_pos_mode,
+                    args=(self.goal[i], joint_speeds[i], accel),
+                    daemon=True
+                )
+                threads.append(t)
 
+    
+        # Start all movements
+        for t in threads:
+            t.start()
+    
+        # Wait for completion
+        for t in threads:
+            t.join()
+        
         self.send_feedback(self._as_joint_pos, self.feedback_joint_pos, self.result_joint_pos)
         self.check_result(self._as_joint_pos, self.result_joint_pos, success)
-
 
     def send_feedback(self, actionServer, fb, res):
         positions = []
@@ -227,16 +241,39 @@ class MoveItInterface:
     def callback_fn(self, data):
         self.joint_state_position = list(data.position)
         print(self.joint_state_position)
-        
+    
+        # Calculate current positions and movement distances
+        current_positions = [self.robot.get_current_position(i) for i in range(5)]
+        target_positions = [np.rad2deg(self.joint_state_position[i]) for i in range(5)]
+        distances = [abs(target_positions[i] - current_positions[i]) for i in range(5)]
+    
+        # Find the maximum distance
+        max_distance = max(distances)
+        if max_distance == 0:
+           max_distance = 1  # Avoid division by zero
+    
+        # Calculate movement time and individual speeds
+        movement_time = max_distance / speed
+        joint_speeds = [dist/movement_time if dist > 0 else 0 for dist in distances]
+    
+        # Move all joints
         threads = []
-        with threading.Lock():
-            for i in range(5):
-                thread = threading.Thread(target=self.robot.set_target_position, args=(i, np.rad2deg(self.joint_state_position[i])), daemon=True)
-                threads.append(thread)
-            for thread in threads:
-                thread.start()
-            for thread in threads:
-                thread.join()
+        for i in range(5):
+            if joint_speeds[i] > 0:  # Only move if needed
+                t = threading.Thread(
+                    target=self.robot.axis_controller[i].profile_pos_mode,
+                    args=(target_positions[i], joint_speeds[i], accel),
+                    daemon=True
+                )
+                threads.append(t)
+    
+        # Start all movements
+        for t in threads:
+            t.start()
+    
+        # Wait for completion
+        for t in threads:
+            t.join()
 
 if __name__ == "__main__":
     try:
