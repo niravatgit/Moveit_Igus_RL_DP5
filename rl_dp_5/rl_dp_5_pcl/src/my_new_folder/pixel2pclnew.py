@@ -50,15 +50,15 @@ class RealRobotValidation:
             quaternion = np.array([rot.x, rot.y, rot.z, rot.w])
             rotation_matrix = tf.transformations.quaternion_matrix(quaternion)[:3, :3]
 
-            T_marker_camera = np.eye(4)
-            T_marker_camera[:3, :3] = rotation_matrix
-            T_marker_camera[:3, 3] = translation
+            T_camera_marker = np.eye(4)
+            T_camera_marker[:3, :3] = rotation_matrix
+            T_camera_marker[:3, 3] = translation
 
-            rospy.loginfo(f"\n=== T_marker_camera ===\n{T_marker_camera}")
+            rospy.loginfo(f"\n=== T_camera_marker ===\n{T_camera_marker}")
 
             # Update T_base_camera
-            T_marker_camera_inv = np.linalg.inv(T_marker_camera)
-            self.T_base_camera = np.matmul(self.T_base_marker, T_marker_camera_inv)
+            T_marker_camera = np.linalg.inv(T_camera_marker)
+            self.T_base_camera = np.matmul(self.T_base_marker, T_marker_camera)
 
             rospy.loginfo(f"\n=== T_base_camera ===\n{self.T_base_camera}")
 
